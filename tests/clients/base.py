@@ -52,6 +52,35 @@ def _truncate(text: str) -> str:
     return f"{text[:MAX_ATTACHMENT_CHARS]}\n... [truncated, {len(text)} chars total]"
 
 
+# uvicorn closes an idle keep-alive connection after 5 seconds, and httpx's
+# default keepalive_expiry is also 5.0 — a dead heat. When a pooled connection
+# reaches that age, the client can pick it up in the same instant the server is
+# closing it, and the request dies with "connection reset by peer" before it is
+# even sent.
+#
+# It never reproduced locally, where the loop is fast enough that gaps rarely
+# reach five seconds. On a contended CI runner with four workers it does, which
+# is how a green suite arrived at a red gate.
+#
+# Expiring client-side at two seconds means this suite never offers the server a
+# connection the server might already have given up on. The retries are for the
+# genuinely unlucky case — they cover connection establishment only, so no
+# request that reached the application is ever sent twice.
+SERVER_KEEPALIVE_SECONDS = 5.0
+CLIENT_KEEPALIVE_SECONDS = 2.0
+
+
+def _pooled_transport() -> httpx.HTTPTransport:
+    return httpx.HTTPTransport(
+        retries=2,
+        limits=httpx.Limits(
+            max_connections=20,
+            max_keepalive_connections=10,
+            keepalive_expiry=CLIENT_KEEPALIVE_SECONDS,
+        ),
+    )
+
+
 class BaseClient:
     """A thin, honest wrapper over one httpx session."""
 
@@ -66,7 +95,11 @@ class BaseClient:
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.default_headers = dict(headers or {})
-        self._http = httpx.Client(base_url=self.base_url, timeout=timeout)
+        self._http = httpx.Client(
+            base_url=self.base_url,
+            timeout=timeout,
+            transport=_pooled_transport(),
+        )
 
     # --- lifecycle ---------------------------------------------------------
 
