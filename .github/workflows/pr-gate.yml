@@ -41,6 +41,9 @@ jobs:
       - uses: ./.github/actions/boot-app
         with:
           database-url: ${{ env.DATABASE_URL }}
+          # No browser setup: this job is the fast gate, and no smoke test is a
+          # UI test. Marking a browser test @smoke means setting ui: "true"
+          # here, or it will fail trying to reach a frontend that is not running.
       - name: pytest -m smoke
         run: pytest -m smoke
       - uses: actions/upload-artifact@v4
@@ -72,6 +75,9 @@ jobs:
       - uses: ./.github/actions/boot-app
         with:
           database-url: ${{ env.DATABASE_URL }}
+          # This is the job that selects the browser tests, so it is the one
+          # that pays for Chromium and the frontend build.
+          ui: "true"
       - name: pytest -m "not smoke and not destructive" -n 4
         run: pytest -m "not smoke and not destructive" -n 4
       - uses: actions/upload-artifact@v4
@@ -103,6 +109,7 @@ jobs:
       - uses: ./.github/actions/boot-app
         with:
           database-url: ${{ env.DATABASE_URL }}
+          # Same assumption as the smoke job: no destructive test is a UI test.
       - name: pytest -m destructive (serial)
         env:
           # There are no destructive tests yet, and this job runs on every build.

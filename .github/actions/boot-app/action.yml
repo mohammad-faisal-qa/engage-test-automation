@@ -1,8 +1,10 @@
 name: Boot the application under test
 description: >
   Check out engage-app at main, install it, run it against the job's Postgres
-  service container, and wait until /api/health answers. Shared by every job in
-  the gate, because three copies of this would drift apart within a month.
+  service container, and wait until /api/health answers. Optionally also build
+  and serve the frontend and install Chromium, for jobs that run browser tests.
+  Shared by every job in the gate, because three copies of this would drift
+  apart within a month.
 
 inputs:
   database-url:
@@ -14,6 +16,14 @@ inputs:
       the gate exercises the interpreter production actually uses.
     required: false
     default: "3.13"
+  ui:
+    description: >
+      Also install Chromium and serve the frontend. Off by default because it
+      costs a browser download and an npm build, and only one job runs browser
+      tests. A job that selects a UI test without setting this will fail trying
+      to reach the frontend.
+    required: false
+    default: "false"
 
 outputs:
   app-commit-sha:
@@ -100,4 +110,73 @@ runs:
         done
         echo "API never became healthy."
         echo "--- uvicorn log ---"; cat "$RUNNER_TEMP/uvicorn.log"
+        exit 1
+
+    # ---------------------------------------------------------------------
+    # Browser tests only, from here down.
+    # ---------------------------------------------------------------------
+
+    - name: Install Chromium
+      if: ${{ inputs.ui == 'true' }}
+      shell: bash
+      # Chromium only. Every browser added multiplies run time and maintenance,
+      # and cross-browser coverage is a decision to take deliberately rather
+      # than to acquire by default. --with-deps pulls the system libraries the
+      # browser needs, which are not present on a bare runner.
+      run: playwright install --with-deps chromium
+
+    - uses: actions/setup-node@v4
+      if: ${{ inputs.ui == 'true' }}
+      with:
+        node-version: "22"
+        cache: npm
+        cache-dependency-path: engage-app/web/package-lock.json
+
+    - name: Build the frontend
+      if: ${{ inputs.ui == 'true' }}
+      shell: bash
+      working-directory: engage-app/web
+      env:
+        # Baked in at build time — Vite substitutes import.meta.env during the
+        # build, so this cannot be set later when the server starts. It points
+        # at the API this job just booted.
+        VITE_API_BASE_URL: http://127.0.0.1:8000
+      run: |
+        # npm ci, not npm install: the lockfile is committed, so the build uses
+        # exactly the dependency versions that were tested.
+        npm ci
+        npm run build
+
+    - name: Serve the frontend
+      if: ${{ inputs.ui == 'true' }}
+      shell: bash
+      working-directory: engage-app/web
+      run: |
+        # vite preview serves the production build, so the gate exercises the
+        # bundle Render would deploy rather than the dev server's output.
+        # --strictPort because a silent shift to another port would present as a
+        # CORS failure, which is a much harder thing to read.
+        nohup npm run preview -- --host localhost --port 5173 --strictPort \
+          > "$RUNNER_TEMP/vite.log" 2>&1 &
+        echo "$!" > "$RUNNER_TEMP/vite.pid"
+
+    - name: Wait for the frontend
+      if: ${{ inputs.ui == 'true' }}
+      shell: bash
+      run: |
+        # localhost, not 127.0.0.1. Vite binds to ::1, so the numeric form never
+        # answers even though the port is open — the same trap the framework's
+        # WEB_BASE_URL default documents. Polled, like the API; no sleeps.
+        for attempt in $(seq 1 60); do
+          code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 \
+                    http://localhost:5173/ || true)"
+          if [ "$code" = "200" ]; then
+            echo "Frontend serving after ${attempt}s (HTTP $code)"
+            echo "WEB_BASE_URL=http://localhost:5173" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "The frontend never started serving."
+        echo "--- vite log ---"; cat "$RUNNER_TEMP/vite.log"
         exit 1
