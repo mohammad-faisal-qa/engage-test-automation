@@ -1,0 +1,18 @@
+HTTP 422
+
+{
+  "detail": [
+    {
+      "ctx": {
+        "reason": "An email address must have an @-sign."
+      },
+      "input": "not-an-email",
+      "loc": [
+        "body",
+        "email"
+      ],
+      "msg": "value is not a valid email address: An email address must have an @-sign.",
+      "type": "value_error"
+    }
+  ]
+}

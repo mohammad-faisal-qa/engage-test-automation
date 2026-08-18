@@ -1,0 +1,5 @@
+HTTP 404
+
+{
+  "detail": "Delivery not found"
+}

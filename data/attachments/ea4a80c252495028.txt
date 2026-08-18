@@ -1,0 +1,9 @@
+GET http://127.0.0.1:8000/api/auth/me
+
+{
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate",
+  "connection": "keep-alive",
+  "host": "127.0.0.1:8000",
+  "user-agent": "python-httpx/0.28.1"
+}

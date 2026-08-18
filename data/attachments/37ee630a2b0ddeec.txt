@@ -1,0 +1,5 @@
+HTTP 422
+
+{
+  "detail": "Cannot move a campaign from draft to sent"
+}

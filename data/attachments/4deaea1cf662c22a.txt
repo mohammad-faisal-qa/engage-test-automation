@@ -1,0 +1,11 @@
+POST http://127.0.0.1:8000/api/auth/token
+
+{
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate",
+  "connection": "keep-alive",
+  "content-length": "57",
+  "content-type": "application/x-www-form-urlencoded",
+  "host": "127.0.0.1:8000",
+  "user-agent": "python-httpx/0.28.1"
+}

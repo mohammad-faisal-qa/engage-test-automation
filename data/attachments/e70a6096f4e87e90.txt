@@ -1,0 +1,5 @@
+HTTP 401
+
+{
+  "detail": "Missing or invalid X-Webhook-Secret header"
+}

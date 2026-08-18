@@ -1,0 +1,5 @@
+HTTP 409
+
+{
+  "detail": "A contact with that email already exists in this tenant"
+}

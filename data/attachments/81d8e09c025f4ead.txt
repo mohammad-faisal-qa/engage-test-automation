@@ -1,0 +1,5 @@
+HTTP 403
+
+{
+  "detail": "Requires editor role or higher"
+}

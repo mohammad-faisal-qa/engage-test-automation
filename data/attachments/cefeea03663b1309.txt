@@ -1,0 +1,18 @@
+HTTP 422
+
+{
+  "detail": [
+    {
+      "ctx": {
+        "max_length": 2
+      },
+      "input": "USA",
+      "loc": [
+        "body",
+        "country"
+      ],
+      "msg": "String should have at most 2 characters",
+      "type": "string_too_long"
+    }
+  ]
+}

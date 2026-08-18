@@ -1,0 +1,5 @@
+HTTP 400
+
+{
+  "detail": "Idempotency-Key header is required"
+}
