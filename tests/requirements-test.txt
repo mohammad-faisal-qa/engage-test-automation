@@ -1,0 +1,24 @@
+# Test framework dependencies.
+#
+# Pinned so a CI run six months from now installs what passed today. Upgrading
+# is then a deliberate commit with a green suite behind it, not a surprise.
+
+# --- core test runner ---
+pytest==8.4.2
+pytest-xdist==3.8.0          # parallel execution: -n 4
+pytest-bdd==8.1.0            # Gherkin journeys (Phase 6)
+
+# --- browser automation (Phase 4 onwards) ---
+playwright==1.56.0
+pytest-playwright==0.7.1
+
+# --- API layer ---
+httpx==0.28.1                # sync HTTP client behind every service client
+pydantic==2.12.4             # response models — same major version as the app
+pydantic-settings==2.13.0    # typed settings from .env
+
+# --- reporting ---
+allure-pytest==2.16.0
+
+# --- cross-worker coordination ---
+filelock==3.20.0             # guards the once-per-session database reset

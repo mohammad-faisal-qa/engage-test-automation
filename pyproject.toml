@@ -1,0 +1,38 @@
+[tool.pytest.ini_options]
+# `tests` on the path is what lets a test say `from clients import ApiClients`
+# instead of reaching up through relative imports it should not know about.
+pythonpath = ["tests"]
+
+# Scoped deliberately. The reason used to be that the application shared this
+# repository and shipped a module called test_utils.py that collection would try
+# to import. That is gone with the split, but the setting stays: it keeps
+# collection out of .venv and any future tooling directory, and it makes a bare
+# `pytest` mean the same thing here as the explicit invocation does in CI.
+testpaths = ["tests"]
+
+addopts = [
+  "-ra",                                 # summarise every non-passing outcome
+  "--strict-markers",                    # a typo'd marker fails, rather than silently matching nothing
+  "--strict-config",                     # same for this file
+  "--alluredir=reports/allure-results",
+]
+
+markers = [
+  "smoke: fast critical-path gate",
+  "regression: full suite",
+  "api: API layer",
+  "ui: browser",
+  "e2e: BDD journeys",
+  "contract: OpenAPI schema validation",
+  "destructive: needs exclusive database state",
+  "slow: over 10 seconds",
+]
+
+# Captured logs appear under a failing test, which is usually enough to
+# diagnose it without rerunning with -s.
+log_cli = false
+log_level = "INFO"
+log_format = "%(asctime)s %(levelname)-5s %(name)s | %(message)s"
+log_date_format = "%H:%M:%S"
+
+filterwarnings = ["error::DeprecationWarning:tests.*"]
