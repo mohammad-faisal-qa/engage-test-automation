@@ -1,0 +1,7 @@
+HTTP 422
+
+{
+  "detail": [
+    "satisfaction: rating 9 is above the maximum of 5"
+  ]
+}

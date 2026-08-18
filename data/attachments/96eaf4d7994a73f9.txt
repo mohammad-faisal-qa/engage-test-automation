@@ -1,0 +1,8 @@
+HTTP 200
+
+{
+  "cap": 2,
+  "eligible": true,
+  "impressions_in_window": 0,
+  "reason": "eligible"
+}

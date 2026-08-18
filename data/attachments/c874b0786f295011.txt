@@ -1,0 +1,12 @@
+HTTP 200
+
+{
+  "channel": "onsite",
+  "created_at": "2026-01-01T09:00:00Z",
+  "id": 4,
+  "name": "Upgrade nudge",
+  "scheduled_at": null,
+  "segment_id": 4,
+  "status": "draft",
+  "tenant_id": "globex"
+}

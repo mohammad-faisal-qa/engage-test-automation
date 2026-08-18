@@ -1,0 +1,5 @@
+HTTP 422
+
+{
+  "detail": "Campaign has no audience: its segment matched no contacts"
+}

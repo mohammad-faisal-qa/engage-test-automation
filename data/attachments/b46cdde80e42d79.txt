@@ -1,0 +1,15 @@
+HTTP 200
+
+{
+  "questions": [
+    {
+      "average": null,
+      "counts": null,
+      "key": "satisfaction",
+      "responses": 0,
+      "type": "rating"
+    }
+  ],
+  "survey_id": 4,
+  "total_responses": 0
+}

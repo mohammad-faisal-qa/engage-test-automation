@@ -1,0 +1,8 @@
+HTTP 200
+
+{
+  "cap": 3,
+  "eligible": false,
+  "impressions_in_window": 3,
+  "reason": "frequency_capped"
+}

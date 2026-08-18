@@ -1,0 +1,30 @@
+HTTP 200
+
+[
+  {
+    "campaign_id": 27,
+    "clicked_at": null,
+    "contact_id": 129,
+    "delivered_at": null,
+    "failed_at": null,
+    "failed_reason": null,
+    "id": 41,
+    "opened_at": null,
+    "queued_at": "2026-08-18T13:37:45.354614Z",
+    "sent_at": null,
+    "status": "queued"
+  },
+  {
+    "campaign_id": 27,
+    "clicked_at": null,
+    "contact_id": 130,
+    "delivered_at": null,
+    "failed_at": null,
+    "failed_reason": null,
+    "id": 42,
+    "opened_at": null,
+    "queued_at": "2026-08-18T13:37:45.354614Z",
+    "sent_at": null,
+    "status": "queued"
+  }
+]

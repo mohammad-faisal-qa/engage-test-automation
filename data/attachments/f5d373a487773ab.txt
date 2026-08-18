@@ -1,0 +1,2 @@
+13:37:45 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/token "HTTP/1.1 200 OK"
+13:37:45 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/token -> 200 (433 ms)
