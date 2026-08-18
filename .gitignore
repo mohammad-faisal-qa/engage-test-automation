@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Test artefacts — every one of these is produced by a run and reproduced by the
+# next one, so none of it belongs in history. `make clean` deletes the same set.
+reports/
+allure-report/
+test-results/
+playwright/.cache/
+.pytest_cache/
+
+# Secrets — never commit. This repository's .env holds TEST_API_KEY, which
+# guards the reset endpoint on a publicly reachable demo.
+.env
+.env.local
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
