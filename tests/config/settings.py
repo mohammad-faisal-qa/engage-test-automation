@@ -37,7 +37,11 @@ class TestSettings(BaseSettings):
 
     # --- targets ---
     api_base_url: str = "http://127.0.0.1:8000"
-    web_base_url: str = "http://127.0.0.1:5173"
+    # localhost, not 127.0.0.1: Vite's dev server binds to ::1 by default, so
+    # the numeric form never answers even though the port is open. Anyone who
+    # copied the API's 127.0.0.1 style here would get connection refused and
+    # blame Playwright.
+    web_base_url: str = "http://localhost:5173"
 
     # --- credentials ---
     # Every seeded user shares one password; see api/app/seed.py in engage-app.

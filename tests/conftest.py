@@ -245,6 +245,30 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 
+@pytest.hookimpl(wrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
+    """Record each phase's result on the item, for fixtures to read at teardown.
+
+    A fixture tearing down cannot otherwise tell whether its test passed. The
+    browser fixtures need to know: a trace, a video and a screenshot are worth
+    keeping for a failure and worth discarding for the two hundred passes, both
+    for the size of the report and because an artefact attached to everything is
+    an artefact nobody opens.
+    """
+    report = yield
+    setattr(item, f"rep_{report.when}", report)
+    return report
+
+
+def test_failed(item: pytest.Item) -> bool:
+    """Did the test body fail? Setup errors count too — a fixture that blew up
+    mid-way is exactly when the trace is most useful."""
+    return any(
+        getattr(getattr(item, f"rep_{phase}", None), "failed", False)
+        for phase in ("setup", "call")
+    )
+
+
 @pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
