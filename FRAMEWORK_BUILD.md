@@ -106,6 +106,32 @@ markers = [
 
 Test names describe behaviour, not mechanics: `test_viewer_cannot_create_contact`, not `test_post_contacts_403`.
 
+### 2.5 Locators
+
+Browser tests choose locators in this order, and the order is the point:
+
+1. **User-facing** — `get_by_role`, `get_by_label`, `get_by_placeholder`, `get_by_text`.
+2. **`data-testid`** where the semantics are genuinely ambiguous.
+3. **CSS or XPath**, last resort, and each use should be uncomfortable enough to prompt a testid
+   instead.
+
+The reason to start at the top rather than reach straight for a testid — which is faster to write
+and never breaks — is that a testid lookup passes through defects a person would trip over. A
+button that stops being a `<button>`, an input that loses its label, a control that becomes
+unreachable by keyboard: all still carry their testid, and a suite built on testids alone reports
+green while the experience is broken. Locating the search box as `get_by_label("Search contacts")`
+asserts, every time it runs, that the box still has a label.
+
+Testids earn their place where roles cannot express identity. Five tables on a page are all
+`role=table`; "the Delete button in the row for contact 41" is not something a role query says
+well, and per-row identity is exactly what the application's `data-testid="contact-delete-41"`
+exists for. Reaching for one there is right; reaching for one because it is easier is how the
+first rule quietly stops applying.
+
+One CSS use is currently justified in the suite, in the wizard's step indicator: "the active step"
+is a visual state with no role and no accessible name to query, and inferring the step from which
+fields happen to be on screen would be far more brittle. It is commented as such where it appears.
+
 ---
 
 # The Phases
@@ -213,7 +239,7 @@ allure serve reports/allure-results   # report opens, requests attached
 
 - Playwright install and config; Chromium only for now
 - `tests/utils/auth_state.py` — `storage_state` created once, shared across xdist workers under a `FileLock` in `tmp_path_factory.getbasetemp().parent`
-- `pages/base_page.py` — navigation, `data-testid` locator helper, waits
+- `pages/base_page.py` — navigation, the locator helpers of Part 2.5 (role, label, testid), waits
 - `pages/login_page.py`
 - Failure hooks: screenshot, video and **Playwright trace** attached to Allure on failure
 - Two tests: valid login, invalid login shows an error
@@ -224,7 +250,7 @@ allure serve reports/allure-results   # report opens, requests attached
 
 > Phase 4: the Playwright foundation.
 >
-> Set up Playwright (Chromium only), `storage_state` auth reuse shared across xdist workers via a file lock in the shared temp dir, a `BasePage` with `data-testid` helpers, a `LoginPage`, and pytest hooks attaching screenshot, video and trace to Allure on failure.
+> Set up Playwright (Chromium only), `storage_state` auth reuse shared across xdist workers via a file lock in the shared temp dir, a `BasePage` offering the locator hierarchy in Part 2.5, a `LoginPage`, and pytest hooks attaching screenshot, video and trace to Allure on failure.
 >
 > Then break a test on purpose and show me the trace attached in the report.
 >
