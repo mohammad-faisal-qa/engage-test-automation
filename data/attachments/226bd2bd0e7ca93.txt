@@ -1,0 +1,2 @@
+12:09:41 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 422 Unprocessable Content"
+12:09:41 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 422 (7 ms)

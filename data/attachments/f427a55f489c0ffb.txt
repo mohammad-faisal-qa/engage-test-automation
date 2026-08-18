@@ -1,0 +1,19 @@
+POST http://127.0.0.1:8000/api/webhooks/delivery
+
+{
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate",
+  "authorization": "<redacted>",
+  "connection": "keep-alive",
+  "content-length": "35",
+  "content-type": "application/json",
+  "host": "127.0.0.1:8000",
+  "idempotency-key": "key-22a2beef",
+  "user-agent": "python-httpx/0.28.1",
+  "x-webhook-secret": "<redacted>"
+}
+
+{
+  "delivery_id": 34,
+  "event": "opened"
+}

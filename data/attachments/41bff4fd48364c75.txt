@@ -1,9 +1,0 @@
-11:37:45 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
-11:37:47 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
-11:37:47 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (334 ms)
-11:37:47 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns "HTTP/1.1 201 Created"
-11:37:47 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns -> 201 (12 ms)
-11:37:47 INFO  httpx | HTTP Request: PATCH http://127.0.0.1:8000/api/campaigns/6 "HTTP/1.1 200 OK"
-11:37:47 INFO  tests.http | PATCH http://127.0.0.1:8000/api/campaigns/6 -> 200 (16 ms)
-11:37:48 INFO  httpx | HTTP Request: PATCH http://127.0.0.1:8000/api/campaigns/6 "HTTP/1.1 200 OK"
-11:37:48 INFO  tests.http | PATCH http://127.0.0.1:8000/api/campaigns/6 -> 200 (11 ms)
