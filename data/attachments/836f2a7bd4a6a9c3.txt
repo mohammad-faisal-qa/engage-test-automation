@@ -1,0 +1,8 @@
+HTTP 200
+
+{
+  "applied": false,
+  "delivery_id": 26,
+  "replayed": false,
+  "status": "delivered"
+}
