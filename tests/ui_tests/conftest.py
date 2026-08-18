@@ -138,6 +138,51 @@ def page(browser, browser_context_args, signed_in_state, tmp_path, request):
     )
 
 
+@pytest.fixture(scope="session")
+def storage_state_for(tmp_path_factory, worker_id: str, settings):
+    """Factory for a signed-in state per identity.
+
+    Each role gets its own file and its own lock, so establishing a viewer
+    session does not serialise behind an admin one.
+    """
+
+    def make(role: str = "admin", tenant: str = "acme") -> Path:
+        return storage_state_file(
+            tmp_path_factory, worker_id, settings, role=role, tenant=tenant
+        )
+
+    return make
+
+
+@pytest.fixture
+def page_as(browser, browser_context_args, storage_state_for, tmp_path, request):
+    """Factory for a page signed in as any role — `page_as("viewer")`.
+
+    Every context it hands out is closed and, on failure, has its evidence
+    attached, so a test may open several without managing teardown itself.
+    """
+    opened: list[tuple] = []
+
+    def make(role: str = "admin", tenant: str = "acme") -> Page:
+        artifacts = tmp_path / f"{role}-{tenant}"
+        context, page = _new_page(
+            browser,
+            {
+                **browser_context_args,
+                "storage_state": str(storage_state_for(role, tenant)),
+            },
+            artifacts,
+        )
+        opened.append((context, page, artifacts, f"{request.node.name}[{role}]"))
+        return page
+
+    yield make
+
+    failed = test_failed(request.node)
+    for context, page, artifacts, label in opened:
+        _finish(context, page, artifacts, failed=failed, label=label)
+
+
 @pytest.fixture
 def anonymous_page(browser, browser_context_args, tmp_path, request):
     """A page with no session at all.

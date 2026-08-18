@@ -10,6 +10,7 @@ import allure
 import pytest
 
 from pages.base_page import BasePage
+from pages.components.nav import Nav
 from pages.login_page import LoginPage
 
 pytestmark = [pytest.mark.ui]
@@ -83,3 +84,48 @@ def test_a_restored_session_lands_signed_in(page, settings):
     app.expect_text("current-user", settings.user_email("admin", "acme"))
     app.expect_route("/contacts")
     app.expect_hidden("login-form")
+
+
+@allure.feature("Login")
+@allure.story("An unauthenticated visitor is sent to the login screen")
+def test_an_unauthenticated_visitor_is_redirected_to_login(anonymous_page, settings):
+    """Deep-linking past the login screen must not work.
+
+    Every route in the application is reachable by URL, which is exactly why the
+    guard has to live in the router rather than in the links: hiding a nav item
+    does nothing for someone who types the address.
+    """
+    app = BasePage(anonymous_page, settings)
+
+    with allure.step("Ask for the contacts grid without a session"):
+        app.open("/contacts")
+
+    app.expect_route("/login")
+    app.expect_visible("login-form")
+    app.expect_hidden("current-user")
+
+
+@allure.feature("Login")
+@allure.story("Signing out ends the session")
+def test_signing_out_ends_the_session(page, settings):
+    """Signing out has to clear the stored token, not merely navigate away.
+
+    The failure worth catching is a sign-out that redirects while leaving the
+    token in place: the screen looks right, and the next deep link walks straight
+    back in. So this signs out and then tries the door again.
+    """
+    nav = Nav(page, settings)
+    app = BasePage(page, settings)
+
+    app.open("/contacts")
+    app.expect_visible("current-user")
+
+    with allure.step("Sign out"):
+        nav.sign_out()
+
+    app.expect_route("/login")
+
+    with allure.step("The session is really gone, not just off screen"):
+        app.open("/contacts")
+        app.expect_route("/login")
+        app.expect_hidden("current-user")
