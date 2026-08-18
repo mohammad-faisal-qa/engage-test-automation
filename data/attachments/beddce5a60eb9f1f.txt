@@ -1,0 +1,21 @@
+HTTP 201
+
+{
+  "created_at": "2026-08-18T19:56:31.911384Z",
+  "id": 4,
+  "name": "Survey 8b124577",
+  "questions": [
+    {
+      "key": "satisfaction",
+      "label": "How satisfied are you?",
+      "max": 5,
+      "min": 1,
+      "options": [],
+      "required": true,
+      "type": "rating"
+    }
+  ],
+  "status": "draft",
+  "targeting": {},
+  "tenant_id": "acme"
+}

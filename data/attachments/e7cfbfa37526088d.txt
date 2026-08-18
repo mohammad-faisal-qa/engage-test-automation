@@ -1,0 +1,11 @@
+HTTP 201
+
+{
+  "answers": {
+    "satisfaction": 4
+  },
+  "contact_id": 122,
+  "id": 6,
+  "submitted_at": "2026-08-18T19:56:31.920758Z",
+  "survey_id": 3
+}

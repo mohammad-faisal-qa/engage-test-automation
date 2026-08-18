@@ -1,0 +1,219 @@
+HTTP 200
+
+{
+  "items": [
+    {
+      "attributes": {
+        "lifetime_value": 274,
+        "newsletter": true,
+        "signup_source": "referral"
+      },
+      "country": "IN",
+      "created_at": "2026-01-01T11:00:00Z",
+      "email": "carla.garcia2@acme.example.com",
+      "first_name": "Carla",
+      "id": 2,
+      "last_name": "Garcia",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 685,
+        "newsletter": false,
+        "signup_source": "paid_search"
+      },
+      "country": "US",
+      "created_at": "2026-01-01T14:00:00Z",
+      "email": "farid.fontaine5@acme.example.com",
+      "first_name": "Farid",
+      "id": 5,
+      "last_name": "Fontaine",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 1096,
+        "newsletter": true,
+        "signup_source": "organic"
+      },
+      "country": "DE",
+      "created_at": "2026-01-01T17:00:00Z",
+      "email": "ingrid.ellis8@acme.example.com",
+      "first_name": "Ingrid",
+      "id": 8,
+      "last_name": "Ellis",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 1507,
+        "newsletter": false,
+        "signup_source": "webinar"
+      },
+      "country": "GB",
+      "created_at": "2026-01-01T20:00:00Z",
+      "email": "lucia.dvorak11@acme.example.com",
+      "first_name": "Lucia",
+      "id": 11,
+      "last_name": "Dvorak",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 1918,
+        "newsletter": true,
+        "signup_source": "referral"
+      },
+      "country": "AU",
+      "created_at": "2026-01-01T23:00:00Z",
+      "email": "carla.costa14@acme.example.com",
+      "first_name": "Carla",
+      "id": 14,
+      "last_name": "Costa",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 2329,
+        "newsletter": false,
+        "signup_source": "paid_search"
+      },
+      "country": "IN",
+      "created_at": "2026-01-02T02:00:00Z",
+      "email": "farid.brooks17@acme.example.com",
+      "first_name": "Farid",
+      "id": 17,
+      "last_name": "Brooks",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 2740,
+        "newsletter": true,
+        "signup_source": "organic"
+      },
+      "country": "US",
+      "created_at": "2026-01-02T05:00:00Z",
+      "email": "ingrid.ahmed20@acme.example.com",
+      "first_name": "Ingrid",
+      "id": 20,
+      "last_name": "Ahmed",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 3151,
+        "newsletter": false,
+        "signup_source": "webinar"
+      },
+      "country": "DE",
+      "created_at": "2026-01-02T08:00:00Z",
+      "email": "lucia.jensen23@acme.example.com",
+      "first_name": "Lucia",
+      "id": 23,
+      "last_name": "Jensen",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 3562,
+        "newsletter": true,
+        "signup_source": "referral"
+      },
+      "country": "GB",
+      "created_at": "2026-01-02T11:00:00Z",
+      "email": "carla.iqbal26@acme.example.com",
+      "first_name": "Carla",
+      "id": 26,
+      "last_name": "Iqbal",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 3973,
+        "newsletter": false,
+        "signup_source": "paid_search"
+      },
+      "country": "AU",
+      "created_at": "2026-01-02T14:00:00Z",
+      "email": "farid.haines29@acme.example.com",
+      "first_name": "Farid",
+      "id": 29,
+      "last_name": "Haines",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 4384,
+        "newsletter": true,
+        "signup_source": "organic"
+      },
+      "country": "IN",
+      "created_at": "2026-01-02T17:00:00Z",
+      "email": "ingrid.garcia32@acme.example.com",
+      "first_name": "Ingrid",
+      "id": 32,
+      "last_name": "Garcia",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 4795,
+        "newsletter": false,
+        "signup_source": "webinar"
+      },
+      "country": "US",
+      "created_at": "2026-01-02T20:00:00Z",
+      "email": "lucia.fontaine35@acme.example.com",
+      "first_name": "Lucia",
+      "id": 35,
+      "last_name": "Fontaine",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 206,
+        "newsletter": true,
+        "signup_source": "referral"
+      },
+      "country": "DE",
+      "created_at": "2026-01-02T23:00:00Z",
+      "email": "carla.ellis38@acme.example.com",
+      "first_name": "Carla",
+      "id": 38,
+      "last_name": "Ellis",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 2500,
+        "newsletter": true,
+        "signup_source": "automation"
+      },
+      "country": "GB",
+      "created_at": "2026-08-18T19:56:26.210698Z",
+      "email": "contact.9e3d5706@qa.example.com",
+      "first_name": "Test",
+      "id": 67,
+      "last_name": "Contact9e3d5706",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    }
+  ],
+  "page": 1,
+  "size": 20,
+  "total": 14
+}

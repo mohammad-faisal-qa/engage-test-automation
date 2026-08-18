@@ -1,0 +1,4 @@
+19:56:31 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
+19:56:31 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (274 ms)
+19:56:31 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/segments "HTTP/1.1 403 Forbidden"
+19:56:31 INFO  tests.http | POST http://127.0.0.1:8000/api/segments -> 403 (5 ms)

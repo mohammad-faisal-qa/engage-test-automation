@@ -1,0 +1,10 @@
+19:56:31 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/surveys "HTTP/1.1 201 Created"
+19:56:31 INFO  tests.http | POST http://127.0.0.1:8000/api/surveys -> 201 (9 ms)
+19:56:31 INFO  httpx | HTTP Request: PATCH http://127.0.0.1:8000/api/surveys/3 "HTTP/1.1 200 OK"
+19:56:31 INFO  tests.http | PATCH http://127.0.0.1:8000/api/surveys/3 -> 200 (9 ms)
+19:56:31 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+19:56:31 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (10 ms)
+19:56:31 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/surveys/3/responses "HTTP/1.1 201 Created"
+19:56:31 INFO  tests.http | POST http://127.0.0.1:8000/api/surveys/3/responses -> 201 (22 ms)
+19:56:31 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/surveys/3/summary "HTTP/1.1 200 OK"
+19:56:31 INFO  tests.http | GET http://127.0.0.1:8000/api/surveys/3/summary -> 200 (8 ms)
