@@ -1,0 +1,18 @@
+POST http://127.0.0.1:8000/api/campaigns
+
+{
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate",
+  "authorization": "<redacted>",
+  "connection": "keep-alive",
+  "content-length": "61",
+  "content-type": "application/json",
+  "host": "127.0.0.1:8000",
+  "user-agent": "python-httpx/0.28.1"
+}
+
+{
+  "channel": "email",
+  "name": "Campaign fc2128a3",
+  "segment_id": 8
+}

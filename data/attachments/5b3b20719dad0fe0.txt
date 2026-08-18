@@ -1,2 +1,0 @@
-11:01:36 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/segments "HTTP/1.1 403 Forbidden"
-11:01:36 INFO  tests.http | POST http://127.0.0.1:8000/api/segments -> 403 (4 ms)

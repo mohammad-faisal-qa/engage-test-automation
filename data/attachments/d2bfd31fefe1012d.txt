@@ -1,0 +1,18 @@
+HTTP 201
+
+{
+  "attributes": {
+    "cohort": "cohort-b893adbc",
+    "lifetime_value": 2500,
+    "newsletter": true,
+    "signup_source": "automation"
+  },
+  "country": "US",
+  "created_at": "2026-08-18T11:06:33.872199Z",
+  "email": "contact.dfdcd743@qa.example.com",
+  "first_name": "Test",
+  "id": 87,
+  "last_name": "Contactdfdcd743",
+  "plan": "pro",
+  "tenant_id": "acme"
+}

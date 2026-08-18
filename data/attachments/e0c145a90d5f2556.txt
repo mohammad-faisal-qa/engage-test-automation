@@ -1,0 +1,2 @@
+11:06:33 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/2 "HTTP/1.1 200 OK"
+11:06:33 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/2 -> 200 (4 ms)
