@@ -1,0 +1,84 @@
+HTTP 200
+
+{
+  "items": [
+    {
+      "attributes": {
+        "lifetime_value": 137,
+        "newsletter": false,
+        "signup_source": "paid_search"
+      },
+      "country": "GB",
+      "created_at": "2026-01-01T10:00:00Z",
+      "email": "ben.dvorak1@acme.example.com",
+      "first_name": "Ben",
+      "id": 1,
+      "last_name": "Dvorak",
+      "plan": "pro",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 274,
+        "newsletter": true,
+        "signup_source": "referral"
+      },
+      "country": "IN",
+      "created_at": "2026-01-01T11:00:00Z",
+      "email": "carla.garcia2@acme.example.com",
+      "first_name": "Carla",
+      "id": 2,
+      "last_name": "Garcia",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 411,
+        "newsletter": false,
+        "signup_source": "webinar"
+      },
+      "country": "DE",
+      "created_at": "2026-01-01T12:00:00Z",
+      "email": "dmitri.jensen3@acme.example.com",
+      "first_name": "Dmitri",
+      "id": 3,
+      "last_name": "Jensen",
+      "plan": "free",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 548,
+        "newsletter": true,
+        "signup_source": "organic"
+      },
+      "country": "AU",
+      "created_at": "2026-01-01T13:00:00Z",
+      "email": "elena.costa4@acme.example.com",
+      "first_name": "Elena",
+      "id": 4,
+      "last_name": "Costa",
+      "plan": "pro",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 685,
+        "newsletter": false,
+        "signup_source": "paid_search"
+      },
+      "country": "US",
+      "created_at": "2026-01-01T14:00:00Z",
+      "email": "farid.fontaine5@acme.example.com",
+      "first_name": "Farid",
+      "id": 5,
+      "last_name": "Fontaine",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    }
+  ],
+  "page": 1,
+  "size": 5,
+  "total": 40
+}

@@ -1,0 +1,84 @@
+HTTP 200
+
+{
+  "items": [
+    {
+      "attributes": {
+        "lifetime_value": 822,
+        "newsletter": true,
+        "signup_source": "referral"
+      },
+      "country": "GB",
+      "created_at": "2026-01-01T15:00:00Z",
+      "email": "grace.iqbal6@acme.example.com",
+      "first_name": "Grace",
+      "id": 6,
+      "last_name": "Iqbal",
+      "plan": "free",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 959,
+        "newsletter": false,
+        "signup_source": "webinar"
+      },
+      "country": "IN",
+      "created_at": "2026-01-01T16:00:00Z",
+      "email": "hugo.brooks7@acme.example.com",
+      "first_name": "Hugo",
+      "id": 7,
+      "last_name": "Brooks",
+      "plan": "pro",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 1096,
+        "newsletter": true,
+        "signup_source": "organic"
+      },
+      "country": "DE",
+      "created_at": "2026-01-01T17:00:00Z",
+      "email": "ingrid.ellis8@acme.example.com",
+      "first_name": "Ingrid",
+      "id": 8,
+      "last_name": "Ellis",
+      "plan": "enterprise",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 1233,
+        "newsletter": false,
+        "signup_source": "paid_search"
+      },
+      "country": "AU",
+      "created_at": "2026-01-01T18:00:00Z",
+      "email": "jamal.haines9@acme.example.com",
+      "first_name": "Jamal",
+      "id": 9,
+      "last_name": "Haines",
+      "plan": "free",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 1370,
+        "newsletter": true,
+        "signup_source": "referral"
+      },
+      "country": "US",
+      "created_at": "2026-01-01T19:00:00Z",
+      "email": "kiran.ahmed10@acme.example.com",
+      "first_name": "Kiran",
+      "id": 10,
+      "last_name": "Ahmed",
+      "plan": "pro",
+      "tenant_id": "acme"
+    }
+  ],
+  "page": 2,
+  "size": 5,
+  "total": 40
+}

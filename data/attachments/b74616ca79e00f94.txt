@@ -1,0 +1,9 @@
+HTTP 200
+
+{
+  "email": "admin@acme.example.com",
+  "id": 1,
+  "name": "Admin Acme",
+  "role": "admin",
+  "tenant_id": "acme"
+}

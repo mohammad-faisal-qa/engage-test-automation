@@ -1,0 +1,5 @@
+09:28:26 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+09:28:28 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
+09:28:28 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (296 ms)
+09:28:28 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/segments/3 "HTTP/1.1 200 OK"
+09:28:28 INFO  tests.http | GET http://127.0.0.1:8000/api/segments/3 -> 200 (9 ms)

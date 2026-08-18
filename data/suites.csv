@@ -1,0 +1,107 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"401, and no token in the body.
+
+The second assertion is the one worth having. A endpoint that returns 401
+while still including a usable token in the body would pass a status-only
+check and be a complete authentication bypass.
+","322","test_login_with_a_wrong_password_is_rejected","tests.api_tests","2026-08-18","passed","2026-08-18","","test_auth","",""
+"Read each id with a token from the tenant that is supposed to own it.
+
+This is the pair the tenant-isolation test is built on. If the ranges in the
+seed ever move, that test starts asserting something it does not mean, and
+this one says so plainly instead.
+","387","test_seeded_contact_belongs_to_the_tenant_its_constant_names[ACME_CONTACT_ID-1-acme]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","8","test_seeded_campaign_is_in_the_state_its_constant_names[CAMPAIGN_SCHEDULED-2-acme-scheduled]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","360","test_seeded_campaign_is_in_the_state_its_constant_names[CAMPAIGN_GLOBEX_DRAFT-4-globex-draft]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","9","test_seeded_campaign_is_in_the_state_its_constant_names[CAMPAIGN_GLOBEX_RUNNING-5-globex-running]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"Read each id with a token from the tenant that is supposed to own it.
+
+This is the pair the tenant-isolation test is built on. If the ranges in the
+seed ever move, that test starts asserting something it does not mean, and
+this one says so plainly instead.
+","363","test_seeded_contact_belongs_to_the_tenant_its_constant_names[GLOBEX_CONTACT_ID-41-globex]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"The names encode two claims — the tenant and the kind — so check both.
+
+`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
+the Phase 2 evaluator tests would be exercising rule evaluation while
+believing they were covering static membership.
+","374","test_seeded_segment_matches_its_constant[SEGMENT_VIP_STATIC-3-acme-static]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"Every assertion here is deliberately relative, never absolute.
+
+`total == 40` would be the obvious thing to write, and it passes — right up
+until this runs at `-n 4` and another worker inserts a contact between the
+two requests. The suite would then fail on a real system behaving correctly,
+which is the most expensive kind of failure because it trains people to
+rerun rather than to read.
+
+So: the envelope must echo what was asked for, a page must not exceed the
+size requested, page 2 must contain different records from page 1, and the
+total must be consistent with what was returned. All of those stay true no
+matter what anyone else is doing to the database at the same time.
+","50","test_contacts_pagination_returns_a_correct_envelope","tests.api_tests","2026-08-18","passed","2026-08-18","","test_contacts_pagination","",""
+"These two are a different kind of claim: not seeded rows, but the
+application's declared limits. They are asserted the way a caller would
+discover them — by asking for the boundary and one past it.
+","82","test_pagination_constants_match_the_api_contract","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"403, and — the part a status-code assertion would miss — no contact.
+
+An endpoint that rejects the response but has already committed the row is
+a real failure mode, and it looks identical to a correct one from the
+status code alone. So the test also asks, as an admin, whether the record
+exists. Searching by the unique email means the answer cannot be confused
+by anything another worker created.
+","712","test_viewer_cannot_create_a_contact","tests.api_tests","2026-08-18","passed","2026-08-18","","test_rbac","",""
+"The token is only useful if the identity behind it is right.
+
+Asserting that /auth/me echoes the tenant and role is the assertion that
+matters: the application decides every authorisation question from those
+two claims, so if they were wrong here, every RBAC and isolation test below
+would be testing the wrong user.
+","678","test_login_returns_a_token_that_identifies_the_user","tests.api_tests","2026-08-18","passed","2026-08-18","","test_auth","",""
+"404, specifically not 403 — and that distinction is the whole test.
+
+Both statuses deny the request, so both look secure. But 403 means ""this
+exists and you may not have it"", which confirms the id is real. Anyone can
+then walk the id space and learn exactly how many customers the other
+tenant has, and which ids to target elsewhere. 404 says only ""no such
+contact for you"", which leaks nothing.
+
+The control assertion matters as much: the same call against the caller's
+*own* contact must succeed. Without it, a broken endpoint returning 404 for
+everything would pass this test while being entirely non-functional.
+","364","test_a_contact_from_another_tenant_reads_as_not_found","tests.api_tests","2026-08-18","passed","2026-08-18","","test_tenant_isolation","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","24","test_seeded_campaign_is_in_the_state_its_constant_names[CAMPAIGN_DRAFT-1-acme-draft]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"The names encode two claims — the tenant and the kind — so check both.
+
+`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
+the Phase 2 evaluator tests would be exercising rule evaluation while
+believing they were covering static membership.
+","361","test_seeded_segment_matches_its_constant[SEGMENT_GLOBEX_FREE-4-globex-rule]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","10","test_seeded_campaign_is_in_the_state_its_constant_names[CAMPAIGN_SENT-3-acme-sent]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"The names encode two claims — the tenant and the kind — so check both.
+
+`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
+the Phase 2 evaluator tests would be exercising rule evaluation while
+believing they were covering static membership.
+","349","test_seeded_segment_matches_its_constant[SEGMENT_ENTERPRISE_RULE-1-acme-rule]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""
+"The names encode two claims — the tenant and the kind — so check both.
+
+`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
+the Phase 2 evaluator tests would be exercising rule evaluation while
+believing they were covering static membership.
+","8","test_seeded_segment_matches_its_constant[SEGMENT_HIGH_VALUE_RULE-2-acme-rule]","tests.api_tests","2026-08-18","passed","2026-08-18","","test_seed_data","",""

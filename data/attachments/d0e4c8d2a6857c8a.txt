@@ -1,0 +1,17 @@
+HTTP 200
+
+{
+  "attributes": {
+    "lifetime_value": 137,
+    "newsletter": false,
+    "signup_source": "paid_search"
+  },
+  "country": "GB",
+  "created_at": "2026-01-01T10:00:00Z",
+  "email": "ben.dvorak1@globex.example.com",
+  "first_name": "Ben",
+  "id": 41,
+  "last_name": "Dvorak",
+  "plan": "pro",
+  "tenant_id": "globex"
+}

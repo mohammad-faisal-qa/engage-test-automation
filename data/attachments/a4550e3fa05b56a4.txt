@@ -1,0 +1,18 @@
+HTTP 422
+
+{
+  "detail": [
+    {
+      "ctx": {
+        "le": 100
+      },
+      "input": "101",
+      "loc": [
+        "query",
+        "size"
+      ],
+      "msg": "Input should be less than or equal to 100",
+      "type": "less_than_equal"
+    }
+  ]
+}
