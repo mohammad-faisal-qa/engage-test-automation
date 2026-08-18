@@ -1,6 +1,0 @@
-19:43:04 INFO  tests.setup | Establishing a browser session for viewer@acme
-19:43:04 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
-19:43:05 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/segments/1 "HTTP/1.1 200 OK"
-19:43:05 INFO  tests.http | GET http://127.0.0.1:8000/api/segments/1 -> 200 (11 ms)
-19:43:05 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/segments/1 "HTTP/1.1 200 OK"
-19:43:05 INFO  tests.http | GET http://127.0.0.1:8000/api/segments/1 -> 200 (14 ms)

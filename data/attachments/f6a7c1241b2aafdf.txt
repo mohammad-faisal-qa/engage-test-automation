@@ -1,0 +1,17 @@
+HTTP 201
+
+{
+  "created_at": "2026-08-18T19:52:32.996418Z",
+  "id": 20,
+  "kind": "static",
+  "name": "Static ffd4fc31",
+  "rules": {
+    "conditions": [],
+    "contact_ids": [
+      99,
+      41
+    ],
+    "match": "all"
+  },
+  "tenant_id": "acme"
+}

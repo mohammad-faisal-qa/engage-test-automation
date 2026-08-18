@@ -1,0 +1,6 @@
+19:52:32 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/segments/1 "HTTP/1.1 200 OK"
+19:52:32 INFO  tests.http | GET http://127.0.0.1:8000/api/segments/1 -> 200 (5 ms)
+19:52:32 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/segments/4 "HTTP/1.1 404 Not Found"
+19:52:32 INFO  tests.http | GET http://127.0.0.1:8000/api/segments/4 -> 404 (4 ms)
+19:52:32 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/segments/4 "HTTP/1.1 200 OK"
+19:52:32 INFO  tests.http | GET http://127.0.0.1:8000/api/segments/4 -> 200 (3 ms)
