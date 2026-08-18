@@ -1,0 +1,10 @@
+19:58:27 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+19:58:27 INFO  tests.setup | Resetting database at http://127.0.0.1:8000
+19:58:29 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/test/reset "HTTP/1.1 200 OK"
+19:58:29 INFO  tests.setup | Database reset complete: {'tenants': 2, 'users': 6, 'contacts': 60, 'segments': 4, 'campaigns': 5, 'notifications': 3, 'surveys': 2, 'survey_responses': 5, 'deliveries': 15}
+19:58:29 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
+19:58:29 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (274 ms)
+19:58:30 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
+19:58:30 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (272 ms)
+19:58:30 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/auth/me "HTTP/1.1 200 OK"
+19:58:30 INFO  tests.http | GET http://127.0.0.1:8000/api/auth/me -> 200 (5 ms)

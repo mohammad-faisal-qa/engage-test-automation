@@ -1,8 +1,0 @@
-HTTP 200
-
-{
-  "applied": true,
-  "delivery_id": 32,
-  "replayed": false,
-  "status": "delivered"
-}
