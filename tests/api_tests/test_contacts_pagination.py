@@ -10,6 +10,7 @@ pytestmark = [pytest.mark.api]
 PAGE_SIZE = 5
 
 
+@pytest.mark.readonly
 @pytest.mark.smoke
 @allure.feature("Contacts")
 @allure.story("Paging returns a correct envelope and distinct pages")
@@ -112,6 +113,7 @@ def test_filters_return_only_matching_contacts(api):
         contacts.delete_one_response(created.id)
 
 
+@pytest.mark.readonly
 @allure.feature("Contacts")
 @allure.story("A page past the end is empty rather than an error")
 def test_a_page_beyond_the_last_one_is_empty(api):
@@ -125,6 +127,7 @@ def test_a_page_beyond_the_last_one_is_empty(api):
     assert page.total >= 0
 
 
+@pytest.mark.readonly
 @allure.feature("Contacts")
 @allure.story("An invalid page number is rejected")
 @pytest.mark.parametrize(("params", "why"), [
@@ -141,6 +144,7 @@ def test_invalid_paging_parameters_are_rejected(api, params, why):
     assert response.status_code == 422, f"{params} was accepted, but {why}"
 
 
+@pytest.mark.readonly
 @allure.feature("Contacts")
 @allure.story("Special characters in a search are data, not syntax")
 @pytest.mark.parametrize("term", ["%", "_", "'", "100%", "a'b", "%_%"])

@@ -35,7 +35,8 @@ from data.constants import (
     SEGMENT_VIP_STATIC,
 )
 
-pytestmark = [pytest.mark.api]
+# Assertions about seeded rows, all of them reads.
+pytestmark = [pytest.mark.api, pytest.mark.readonly]
 
 
 @allure.feature("Seed data")

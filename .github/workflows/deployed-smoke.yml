@@ -1,0 +1,88 @@
+name: Deployed smoke
+
+# This asks a different question from the PR gate. The gate asks "does the
+# framework pass against the application as it is now", and builds the app to
+# find out. This asks "is the public demo still alive", and may not write a
+# single row while finding out — someone may be looking at that demo, and its
+# data is shared.
+#
+# So it is monitoring rather than gating: scheduled, not triggered by a push.
+on:
+  schedule:
+    # Daily. Nothing here depends on the time of day; it is early enough that a
+    # broken demo is known about before anyone is likely to open the portfolio.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  readonly:
+    name: Read-only checks against Render
+    runs-on: ubuntu-latest
+    # Generous on purpose. The free Render instance sleeps after 15 minutes idle
+    # and takes about a minute to wake, so the first request of the day is slow
+    # by design. A tight limit here would turn a healthy deployment into a red
+    # build, and a red build nobody believes is worse than no build at all.
+    timeout-minutes: 20
+
+    env:
+      API_BASE_URL: https://engage-api-b6yg.onrender.com
+      # The deployed database is public, shared, and the thing the portfolio
+      # links to. Nothing in this job may reset it.
+      RESET_DATABASE: "false"
+      # Needed because the suite refuses to start without it, not because the
+      # read-only tests call a guarded endpoint. See the precondition in
+      # tests/conftest.py.
+      TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+      # Absorbs the cold start inside individual requests as well as the
+      # warm-up below, so a wake-up mid-run cannot fail a test.
+      REQUEST_TIMEOUT: "120"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install the test framework
+        # No application install and no database: this job talks to a deployed
+        # instance over HTTP, the same way any other client would.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests/requirements-test.txt
+
+      - name: Wake the instance
+        # Polled, not slept, and done before pytest so the cold start is not
+        # charged to whichever test happened to run first.
+        run: |
+          for attempt in $(seq 1 60); do
+            body="$(curl -fsS --max-time 30 "$API_BASE_URL/api/health" || true)"
+            case "$body" in
+              *'"status":"ok"'*)
+                echo "Awake after ${attempt} attempt(s): $body"
+                exit 0 ;;
+              *degraded*)
+                echo "Reachable but degraded: $body"
+                exit 1 ;;
+            esac
+            echo "attempt ${attempt}: no healthy response yet"
+            sleep 5
+          done
+          echo "The deployed API never became healthy."
+          exit 1
+
+      - name: pytest -m readonly
+        # readonly, never smoke. They are different promises: smoke means "fast
+        # critical path", readonly means "creates and mutates nothing". Selecting
+        # smoke here would mean that the first time someone adds a smoke test
+        # that creates a contact, this job silently starts POSTing to the public
+        # demo on a schedule.
+        run: pytest -m readonly
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-deployed-smoke
+          path: reports/allure-results
+          if-no-files-found: ignore

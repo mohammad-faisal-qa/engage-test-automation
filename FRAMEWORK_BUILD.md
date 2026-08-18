@@ -350,10 +350,26 @@ timeout       generous — see below
 Two rules make this safe against a live demo, and the second is the one that is easy to get wrong:
 
 - **`RESET_DATABASE=false`.** The deployed database is shared and public. Nothing here may wipe it.
-- **`-m readonly`, never `-m smoke`.** They look interchangeable and are not: one of the smoke
-  tests attempts a write. Pointing this job at `smoke` would have it POST to the public demo on a
-  schedule. `readonly` is a promise a test makes about itself — creates nothing, mutates nothing —
-  and it has to be claimed deliberately, which is the entire point of it being a separate marker.
+- **`-m readonly`, never `-m smoke`.** The two look interchangeable and are not, and the reason
+  is worth stating precisely because it is *not* that some smoke test writes today. It does not:
+  the smoke set is three pure reads, and the only test that attempts a write is the RBAC one,
+  which is not in it.
+
+  The reason is that they are two different promises about two different things. `smoke` means
+  *fast, and on the critical path* — it answers "is it worth running the rest". `readonly` means
+  *creates nothing, mutates nothing* — it answers "is this safe to point at something I do not
+  own". Those properties are independent: a test can be either, both, or neither.
+
+  Couple them and the coupling holds right up until someone adds a smoke test that creates a
+  contact — an entirely reasonable thing to want in a critical-path gate. At that moment this job
+  silently begins POSTing to the public demo on a schedule, and nothing fails to announce it.
+  The bug would be committed in one repository and manifest as junk rows in a live database, which
+  is about as far apart as cause and effect get.
+
+  Keeping them separate makes "safe against a shared environment" something a test has to *claim*,
+  one test at a time, rather than something it inherits by being fast. And the claim is checkable:
+  run the readonly selection against a database you control and compare row counts before and
+  after. If they differ, the marker is lying.
 
 Give it a **generous timeout**. The free Render instance sleeps after 15 minutes idle and takes
 about a minute to wake, so the first request of the day is slow by design. A tight timeout turns a

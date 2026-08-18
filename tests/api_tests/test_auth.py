@@ -3,7 +3,10 @@
 import allure
 import pytest
 
-pytestmark = [pytest.mark.api]
+# Every test here reads: logging in, reading identity back, and being
+# refused. Nothing is created, so the whole module is safe to point at the
+# deployed demo.
+pytestmark = [pytest.mark.api, pytest.mark.readonly]
 
 
 @pytest.mark.smoke

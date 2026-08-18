@@ -16,6 +16,7 @@ from data.factories import campaign_payload, contact_payload, static_segment_pay
 pytestmark = [pytest.mark.api]
 
 
+@pytest.mark.readonly
 @pytest.mark.smoke
 @allure.feature("Tenant isolation")
 @allure.story("Another tenant's contact is not found, rather than forbidden")
@@ -55,6 +56,7 @@ def test_a_contact_from_another_tenant_reads_as_not_found(api):
     )
 
 
+@pytest.mark.readonly
 @allure.feature("Tenant isolation")
 @allure.story("Another tenant's segment and campaign are not found")
 @pytest.mark.parametrize(
