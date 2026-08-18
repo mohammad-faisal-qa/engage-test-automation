@@ -75,3 +75,84 @@ def campaign_payload(**overrides: Any) -> dict[str, Any]:
     }
     payload.update(overrides)
     return payload
+
+
+# --- segments ---------------------------------------------------------------
+#
+# Rule segments are evaluated over every contact in the tenant, which makes them
+# the one place where another worker's data can leak into an assertion. The
+# answer is a cohort marker: each test stamps a unique value into
+# `attributes.cohort` on the contacts it creates, and every segment it builds
+# carries an `eq` condition on that marker alongside the field actually under
+# test. Membership is then exactly this test's contacts, whatever else is in the
+# database, and `-n 4` changes nothing.
+
+COHORT_FIELD = "cohort"
+
+
+def cohort_marker() -> str:
+    """A value no other test will use."""
+    return f"cohort-{unique_suffix()}"
+
+
+def cohort_contact(cohort: str, **overrides: Any) -> dict[str, Any]:
+    """A contact tagged into one cohort. Attribute overrides merge, not replace."""
+    payload = contact_payload()
+    attributes = payload["attributes"] | {COHORT_FIELD: cohort}
+    attributes.update(overrides.pop("attributes", {}))
+    payload.update(overrides)
+    payload["attributes"] = attributes
+    return payload
+
+
+def condition(field: str, op: str, value: Any) -> dict[str, Any]:
+    return {"field": field, "op": op, "value": value}
+
+
+def rule_segment_payload(
+    cohort: str,
+    *conditions: dict[str, Any],
+    match: str = "all",
+) -> dict[str, Any]:
+    """A rule segment scoped to one cohort.
+
+    The cohort condition is prepended rather than left to the caller, so it
+    cannot be forgotten — a segment without it would match other workers' rows.
+
+    Note it is only sound with `match="all"`. Under `any` the cohort condition
+    would widen the segment instead of narrowing it, so tests needing `any` use
+    `rule_segment_payload_any`, which nests the real conditions under the
+    cohort by intersecting the result in the test instead.
+    """
+    return {
+        "name": unique_name("Segment"),
+        "kind": "rule",
+        "rules": {
+            "match": match,
+            "conditions": [condition(COHORT_FIELD, "eq", cohort), *conditions],
+        },
+    }
+
+
+def unscoped_rule_segment_payload(
+    *conditions: dict[str, Any], match: str = "all"
+) -> dict[str, Any]:
+    """A rule segment with no cohort condition.
+
+    For `match="any"` tests, where a cohort condition would broaden rather than
+    narrow. Those tests must intersect the returned members against the ids they
+    created rather than asserting on the whole membership.
+    """
+    return {
+        "name": unique_name("Segment"),
+        "kind": "rule",
+        "rules": {"match": match, "conditions": list(conditions)},
+    }
+
+
+def static_segment_payload(contact_ids: list[int]) -> dict[str, Any]:
+    return {
+        "name": unique_name("Static"),
+        "kind": "static",
+        "rules": {"contact_ids": contact_ids},
+    }

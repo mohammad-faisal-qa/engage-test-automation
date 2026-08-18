@@ -13,21 +13,50 @@ the suite slower than the application it tests.
 
 from __future__ import annotations
 
+from clients.analytics_client import AnalyticsClient
 from clients.auth_client import AuthClient
 from clients.base import BaseClient, UnexpectedStatus
+from clients.campaigns_client import CampaignsClient
 from clients.contacts_client import ContactsClient
+from clients.delivery_client import DeliveryClient
+from clients.notifications_client import NotificationsClient
+from clients.segments_client import SegmentsClient
+from clients.surveys_client import SurveysClient
 
-__all__ = ["ApiClients", "AuthClient", "BaseClient", "ContactsClient", "UnexpectedStatus"]
+__all__ = [
+    "AnalyticsClient",
+    "ApiClients",
+    "AuthClient",
+    "BaseClient",
+    "CampaignsClient",
+    "ContactsClient",
+    "DeliveryClient",
+    "NotificationsClient",
+    "SegmentsClient",
+    "SurveysClient",
+    "UnexpectedStatus",
+]
 
 
 class ApiClients:
     """Every service client, for every identity, built once and reused."""
 
-    def __init__(self, base_url: str, *, timeout: float, password: str, email_for) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        *,
+        timeout: float,
+        password: str,
+        email_for,
+        webhook_secret: str = "",
+    ) -> None:
         self._base_url = base_url
         self._timeout = timeout
         self._password = password
         self._email_for = email_for
+        # Not a bearer token: the delivery webhook is a provider callback, so it
+        # is guarded by a shared secret rather than by a login.
+        self._webhook_secret = webhook_secret
         self._tokens: dict[tuple[str, str], str] = {}
         self._clients: dict[tuple[type, str | None, str], BaseClient] = {}
         self._open: list[BaseClient] = []
@@ -61,6 +90,26 @@ class ApiClients:
 
     def contacts(self, role: str = "admin", tenant: str = "acme") -> ContactsClient:
         return self._client(ContactsClient, role, tenant)
+
+    def segments(self, role: str = "admin", tenant: str = "acme") -> SegmentsClient:
+        return self._client(SegmentsClient, role, tenant)
+
+    def campaigns(self, role: str = "admin", tenant: str = "acme") -> CampaignsClient:
+        return self._client(CampaignsClient, role, tenant)
+
+    def delivery(self, role: str = "admin", tenant: str = "acme") -> DeliveryClient:
+        client = self._client(DeliveryClient, role, tenant)
+        client.webhook_secret = self._webhook_secret
+        return client
+
+    def analytics(self, role: str = "admin", tenant: str = "acme") -> AnalyticsClient:
+        return self._client(AnalyticsClient, role, tenant)
+
+    def notifications(self, role: str = "admin", tenant: str = "acme") -> NotificationsClient:
+        return self._client(NotificationsClient, role, tenant)
+
+    def surveys(self, role: str = "admin", tenant: str = "acme") -> SurveysClient:
+        return self._client(SurveysClient, role, tenant)
 
     def raw(self, role: str = "admin", tenant: str = "acme") -> BaseClient:
         """An authenticated client with no service methods, for paths that have

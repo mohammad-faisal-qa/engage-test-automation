@@ -3,11 +3,20 @@
 import allure
 import pytest
 
-from data.constants import ACME_CONTACT_ID, GLOBEX_CONTACT_ID
+from data.constants import (
+    ACME_CONTACT_ID,
+    CAMPAIGN_DRAFT,
+    CAMPAIGN_GLOBEX_DRAFT,
+    GLOBEX_CONTACT_ID,
+    SEGMENT_ENTERPRISE_RULE,
+    SEGMENT_GLOBEX_FREE,
+)
+from data.factories import campaign_payload, contact_payload, static_segment_payload
 
-pytestmark = [pytest.mark.api, pytest.mark.smoke]
+pytestmark = [pytest.mark.api]
 
 
+@pytest.mark.smoke
 @allure.feature("Tenant isolation")
 @allure.story("Another tenant's contact is not found, rather than forbidden")
 def test_a_contact_from_another_tenant_reads_as_not_found(api):
@@ -44,3 +53,84 @@ def test_a_contact_from_another_tenant_reads_as_not_found(api):
         "globex cannot read its own contact, so the 404 above may be a missing "
         "row rather than tenant isolation working"
     )
+
+
+@allure.feature("Tenant isolation")
+@allure.story("Another tenant's segment and campaign are not found")
+@pytest.mark.parametrize(
+    ("what", "path", "own_id", "other_id"),
+    [
+        ("segment", "/api/segments", SEGMENT_ENTERPRISE_RULE, SEGMENT_GLOBEX_FREE),
+        ("campaign", "/api/campaigns", CAMPAIGN_DRAFT, CAMPAIGN_GLOBEX_DRAFT),
+    ],
+)
+def test_another_tenants_records_read_as_not_found(api, what, path, own_id, other_id):
+    """The same 404-not-403 rule as contacts, across the other two modules.
+
+    Isolation implemented per-endpoint tends to be implemented per-endpoint
+    *inconsistently* — one router remembers to scope its query and the next one
+    does not. Each case carries its own control read so a blanket 404 cannot
+    pass for security.
+    """
+    acme = api.raw(tenant="acme")
+
+    own = acme.get(f"{path}/{own_id}")
+    assert own.status_code == 200, f"the control read of acme's own {what} failed"
+
+    other = acme.get(f"{path}/{other_id}")
+    assert other.status_code == 404, (
+        f"acme read globex's {what} with status {other.status_code}; 403 would "
+        f"confirm the id exists and leak globex's id space"
+    )
+
+    owner = api.raw(tenant="globex").get(f"{path}/{other_id}")
+    assert owner.status_code == 200, (
+        f"globex cannot read its own {what}, so the 404 above may be a missing "
+        f"row rather than isolation working"
+    )
+
+
+@allure.feature("Tenant isolation")
+@allure.story("A campaign cannot target another tenant's segment")
+def test_a_campaign_cannot_target_another_tenants_segment(api):
+    """A write that would create a cross-tenant reference, refused at the point
+    of creation rather than discovered later when the campaign resolves to an
+    audience it should never have seen.
+    """
+    response = api.campaigns(tenant="acme").create_response(
+        campaign_payload(segment_id=SEGMENT_GLOBEX_FREE)
+    )
+
+    assert response.status_code == 404, (
+        f"an acme campaign was allowed to target globex's segment "
+        f"({response.status_code})"
+    )
+
+
+@allure.feature("Tenant isolation")
+@allure.story("Segment membership never crosses the tenant boundary")
+def test_a_static_segment_cannot_pull_in_another_tenants_contact(api):
+    """The subtle one.
+
+    A static segment is just a list of ids, and nothing stops an acme user
+    writing globex's contact id into it. The protection cannot live in the
+    segment — it has to live in how membership is resolved, which is scoped to
+    the caller's tenant. So the segment is allowed to hold the id, and the id
+    simply never resolves to a contact.
+    """
+    own = api.contacts(tenant="acme").create(contact_payload())
+    try:
+        segment = api.segments(tenant="acme").create(
+            static_segment_payload([own.id, GLOBEX_CONTACT_ID])
+        )
+        members = api.segments(tenant="acme").members(segment.id)
+        member_ids = {contact.id for contact in members}
+
+        assert own.id in member_ids, "the segment did not resolve its own tenant's contact"
+        assert GLOBEX_CONTACT_ID not in member_ids, (
+            "an acme segment listing a globex contact id resolved to that "
+            "contact — membership is not tenant-scoped"
+        )
+        assert {contact.tenant_id for contact in members} == {"acme"}
+    finally:
+        api.contacts(tenant="acme").delete_one_response(own.id)

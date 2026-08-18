@@ -27,6 +27,18 @@ class AuthClient(BaseClient):
         """Log in without expecting anything, for tests about failed logins."""
         return self.post("/api/auth/login", json={"email": email, "password": password})
 
+    def login_form_response(self, email: str, password: str) -> httpx.Response:
+        """The OAuth2 password-flow endpoint behind the /docs Authorize button.
+
+        It is form-encoded, not JSON, and the field is called `username` even
+        though the value is an email address — that mismatch is the reason this
+        has its own method rather than being folded into `login`.
+        """
+        return self.post(
+            "/api/auth/token",
+            data={"username": email, "password": password},
+        )
+
     def me(self) -> User:
         """The identity behind this client's token."""
         response = self.get("/api/auth/me", expect=200)

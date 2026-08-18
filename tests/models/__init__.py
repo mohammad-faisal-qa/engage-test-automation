@@ -67,4 +67,119 @@ class Page(BaseModel, Generic[ItemT]):
         return [item.id for item in self.items]  # type: ignore[attr-defined]
 
 
-__all__ = ["Contact", "Page", "Token", "User"]
+class Segment(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    tenant_id: str
+    name: str
+    kind: str
+    rules: dict[str, Any]
+    created_at: datetime
+
+
+class Campaign(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    tenant_id: str
+    name: str
+    status: str
+    channel: str
+    segment_id: int | None = None
+    scheduled_at: datetime | None = None
+    created_at: datetime
+
+
+class Delivery(BaseModel):
+    """One campaign-to-contact send.
+
+    Every stage carries its own nullable timestamp rather than only a status,
+    which is what lets the application survive receipts arriving out of order —
+    and what the idempotency and analytics tests assert against.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    campaign_id: int
+    contact_id: int
+    status: str
+    queued_at: datetime
+    sent_at: datetime | None = None
+    delivered_at: datetime | None = None
+    opened_at: datetime | None = None
+    clicked_at: datetime | None = None
+    failed_at: datetime | None = None
+    failed_reason: str | None = None
+
+
+class SendResult(BaseModel):
+    """The 202 from a send: an acknowledgement, not an outcome."""
+
+    campaign_id: int
+    status: str
+    queued: int
+    poll: str
+
+
+class WebhookResult(BaseModel):
+    """`applied` says whether this receipt changed anything; `replayed` says
+    whether the endpoint recognised the idempotency key and returned the
+    original outcome instead of acting again."""
+
+    delivery_id: int
+    status: str
+    applied: bool
+    replayed: bool
+
+
+class CampaignStats(BaseModel):
+    campaign_id: int
+    name: str
+    status: str
+    channel: str
+    total: int
+    sent: int
+    delivered: int
+    opened: int
+    clicked: int
+    failed: int
+    delivery_rate: float
+    open_rate: float
+    click_rate: float
+
+
+class Notification(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    tenant_id: str
+    name: str
+    status: str
+
+
+class Survey(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    tenant_id: str
+    name: str
+    status: str
+
+
+__all__ = [
+    "Campaign",
+    "CampaignStats",
+    "Contact",
+    "Delivery",
+    "Notification",
+    "Page",
+    "Segment",
+    "SendResult",
+    "Survey",
+    "Token",
+    "User",
+    "WebhookResult",
+]
+

@@ -216,6 +216,7 @@ def api(settings: TestSettings, database_state: None) -> ApiClients:
         timeout=settings.request_timeout,
         password=settings.seed_password,
         email_for=settings.user_email,
+        webhook_secret=settings.webhook_secret,
     )
     yield clients
     clients.close()
