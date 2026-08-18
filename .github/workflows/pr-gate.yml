@@ -80,6 +80,17 @@ jobs:
           ui: "true"
       - name: pytest -m "not smoke and not destructive" -n 4
         run: pytest -m "not smoke and not destructive" -n 4
+      - name: Application log
+        # Only on failure, and only because a failure here has twice now been a
+        # transport error with no URL in it. When the client cannot say what
+        # happened, the server usually can, and guessing across two environments
+        # is expensive.
+        if: failure()
+        run: |
+          echo "--- uvicorn ---"
+          cat "$RUNNER_TEMP/uvicorn.log" || echo "(no uvicorn log)"
+          echo "--- vite ---"
+          cat "$RUNNER_TEMP/vite.log" || echo "(no vite log)"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

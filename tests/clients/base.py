@@ -30,6 +30,11 @@ REDACTED_HEADERS = {"authorization", "x-test-key", "x-webhook-secret"}
 MAX_ATTACHMENT_CHARS = 20_000
 
 
+class TransportFailure(RuntimeError):
+    """A request never completed. Not an AssertionError, deliberately: the
+    application did not answer, so nothing about its behaviour was observed."""
+
+
 class UnexpectedStatus(AssertionError):
     """A request returned a status the caller did not expect.
 
@@ -66,6 +71,11 @@ def _truncate(text: str) -> str:
 # connection the server might already have given up on. The retries are for the
 # genuinely unlucky case — they cover connection establishment only, so no
 # request that reached the application is ever sent twice.
+# Safe to resend: nothing about them changes state, so a retry can only ever
+# repeat a question. Deliberately excludes POST, PATCH and DELETE.
+IDEMPOTENT_METHODS = {"GET", "HEAD", "OPTIONS"}
+RETRYABLE_ATTEMPTS = 3
+
 SERVER_KEEPALIVE_SECONDS = 5.0
 CLIENT_KEEPALIVE_SECONDS = 2.0
 
@@ -137,11 +147,47 @@ class BaseClient:
         error. Omit it when the status *is* the thing under test, and assert on
         `response.status_code` yourself.
         """
-        response = self._http.request(method, path, headers=self._build_headers(headers), **kwargs)
+        response = self._send(method, path, self._build_headers(headers), kwargs)
         self._record(response, kwargs.get("json"))
         if expect is not None:
             self._assert_status(response, expect)
         return response
+
+    def _send(
+        self, method: str, path: str, headers: dict[str, str], kwargs: dict
+    ) -> httpx.Response:
+        """Send one request, retrying only where retrying is provably safe.
+
+        A transport error carries no URL, so "connection reset by peer" in a CI
+        summary names neither the call that failed nor the test's intent. Both
+        are added here.
+
+        Retries are restricted to methods with no side effects. A POST that
+        reached the application and then lost its response looks identical to
+        one that never arrived, so resending it could double a delivery — and
+        this client posts webhook receipts whose whole point is that they are
+        applied once. Reads carry no such risk, and polling is the pattern most
+        exposed to a dropped connection.
+        """
+        attempts = RETRYABLE_ATTEMPTS if method.upper() in IDEMPOTENT_METHODS else 1
+        last: Exception | None = None
+
+        for attempt in range(1, attempts + 1):
+            try:
+                return self._http.request(method, path, headers=headers, **kwargs)
+            except httpx.TransportError as exc:
+                last = exc
+                logger.warning(
+                    "%s %s failed at the transport level (attempt %s/%s): %s",
+                    method, path, attempt, attempts, exc,
+                )
+
+        raise TransportFailure(
+            f"{method} {self.base_url}{path} failed at the transport level after "
+            f"{attempts} attempt(s): {type(last).__name__}: {last}\n"
+            f"The request never completed, so this is not the application "
+            f"refusing it — the connection itself did not survive."
+        ) from last
 
     def get(self, path: str, **kwargs: Any) -> httpx.Response:
         return self.request("GET", path, **kwargs)
