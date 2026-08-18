@@ -1,0 +1,34 @@
+12:37:52 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+12:37:52 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (11 ms)
+12:37:52 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+12:37:52 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (9 ms)
+12:37:52 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/segments "HTTP/1.1 201 Created"
+12:37:52 INFO  tests.http | POST http://127.0.0.1:8000/api/segments -> 201 (13 ms)
+12:37:52 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns "HTTP/1.1 201 Created"
+12:37:52 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns -> 201 (12 ms)
+12:37:52 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns/22/send "HTTP/1.1 202 Accepted"
+12:37:52 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns/22/send -> 202 (11 ms)
+12:37:52 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:52 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (4 ms)
+12:37:52 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:52 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (6 ms)
+12:37:52 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:52 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (5 ms)
+12:37:53 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:53 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (11 ms)
+12:37:53 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:53 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (6 ms)
+12:37:53 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:53 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (14 ms)
+12:37:53 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:53 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (9 ms)
+12:37:54 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:54 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (7 ms)
+12:37:54 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/22/deliveries "HTTP/1.1 200 OK"
+12:37:54 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/22/deliveries -> 200 (10 ms)
+12:37:54 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/webhooks/delivery "HTTP/1.1 404 Not Found"
+12:37:54 INFO  tests.http | POST http://127.0.0.1:8000/api/webhooks/delivery -> 404 (10 ms)
+12:37:54 INFO  httpx | HTTP Request: DELETE http://127.0.0.1:8000/api/contacts/108 "HTTP/1.1 500 Internal Server Error"
+12:37:54 INFO  tests.http | DELETE http://127.0.0.1:8000/api/contacts/108 -> 500 (22 ms)
+12:37:54 INFO  httpx | HTTP Request: DELETE http://127.0.0.1:8000/api/contacts/109 "HTTP/1.1 500 Internal Server Error"
+12:37:54 INFO  tests.http | DELETE http://127.0.0.1:8000/api/contacts/109 -> 500 (24 ms)

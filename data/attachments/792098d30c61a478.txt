@@ -1,2 +1,0 @@
-12:09:45 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns "HTTP/1.1 404 Not Found"
-12:09:45 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns -> 404 (3 ms)

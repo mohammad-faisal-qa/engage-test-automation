@@ -1,0 +1,25 @@
+HTTP 201
+
+{
+  "created_at": "2026-08-18T12:37:51.490990Z",
+  "id": 17,
+  "kind": "rule",
+  "name": "Segment bc2da189",
+  "rules": {
+    "conditions": [
+      {
+        "field": "cohort",
+        "op": "eq",
+        "value": "cohort-9f442067"
+      },
+      {
+        "field": "plan",
+        "op": "eq",
+        "value": "plan-1cacba49"
+      }
+    ],
+    "contact_ids": [],
+    "match": "all"
+  },
+  "tenant_id": "acme"
+}

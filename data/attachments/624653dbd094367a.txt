@@ -1,0 +1,24 @@
+HTTP 200
+
+{
+  "items": [
+    {
+      "attributes": {
+        "lifetime_value": 2500,
+        "newsletter": true,
+        "signup_source": "automation"
+      },
+      "country": "US",
+      "created_at": "2026-08-18T12:37:47.287675Z",
+      "email": "contact.da2e275c@qa.example.com",
+      "first_name": "Genevieve",
+      "id": 63,
+      "last_name": "Contactda2e275c",
+      "plan": "pro",
+      "tenant_id": "acme"
+    }
+  ],
+  "page": 1,
+  "size": 20,
+  "total": 1
+}
