@@ -1,0 +1,8 @@
+HTTP 200
+
+{
+  "items": [],
+  "page": 10000,
+  "size": 5,
+  "total": 42
+}

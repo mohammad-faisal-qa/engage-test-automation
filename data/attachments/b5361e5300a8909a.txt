@@ -1,0 +1,2 @@
+19:42:58 INFO  tests.setup | Establishing a browser session for admin@acme
+19:42:58 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"

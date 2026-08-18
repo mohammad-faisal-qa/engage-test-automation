@@ -1,0 +1,12 @@
+HTTP 201
+
+{
+  "channel": "email",
+  "created_at": "2026-08-18T19:42:56.119248Z",
+  "id": 18,
+  "name": "Campaign 414e4f36",
+  "scheduled_at": null,
+  "segment_id": 21,
+  "status": "draft",
+  "tenant_id": "acme"
+}

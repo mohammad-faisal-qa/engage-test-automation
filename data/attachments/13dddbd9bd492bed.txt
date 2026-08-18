@@ -1,6 +1,0 @@
-13:37:35 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
-13:37:35 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (19 ms)
-13:37:35 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 409 Conflict"
-13:37:36 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 409 (11 ms)
-13:37:36 INFO  httpx | HTTP Request: DELETE http://127.0.0.1:8000/api/contacts/64 "HTTP/1.1 204 No Content"
-13:37:36 INFO  tests.http | DELETE http://127.0.0.1:8000/api/contacts/64 -> 204 (15 ms)

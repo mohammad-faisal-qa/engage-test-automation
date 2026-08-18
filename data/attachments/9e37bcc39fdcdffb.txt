@@ -1,0 +1,8 @@
+19:42:55 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/segments "HTTP/1.1 201 Created"
+19:42:55 INFO  tests.http | POST http://127.0.0.1:8000/api/segments -> 201 (6 ms)
+19:42:55 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns "HTTP/1.1 201 Created"
+19:42:55 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns -> 201 (6 ms)
+19:42:55 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns/16/send "HTTP/1.1 422 Unprocessable Content"
+19:42:55 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns/16/send -> 422 (6 ms)
+19:42:55 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/16/deliveries "HTTP/1.1 200 OK"
+19:42:55 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/16/deliveries -> 200 (4 ms)
