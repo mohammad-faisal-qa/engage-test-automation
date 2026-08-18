@@ -17,6 +17,11 @@ httpx==0.28.1                # sync HTTP client behind every service client
 pydantic==2.12.4             # response models — same major version as the app
 pydantic-settings==2.13.0    # typed settings from .env
 
+# --- contract testing ---
+# OpenAPI 3.1 schemas are JSON Schema 2020-12, so the app's own published
+# document can be used to validate live responses directly.
+jsonschema==4.25.1
+
 # --- reporting ---
 allure-pytest==2.16.0
 

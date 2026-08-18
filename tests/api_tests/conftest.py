@@ -12,8 +12,10 @@ it. Everything below builds a set that belongs to one test alone.
 
 from __future__ import annotations
 
+import httpx
 import pytest
 
+from data.constants import CAMPAIGN_SENT, SEGMENT_ENTERPRISE_RULE
 from data.factories import (
     campaign_payload,
     cohort_contact,
@@ -100,3 +102,57 @@ def sent_campaign(api, campaign_with_audience, settings):
         f"got {len(deliveries)}"
     )
     return campaign, deliveries
+
+
+@pytest.fixture(scope="session")
+def openapi(settings) -> dict:
+    """The application's own published contract, fetched once.
+
+    Session-scoped because it cannot change while the process under test is
+    running, and fetching it per test would add a request to every contract
+    assertion for no new information.
+    """
+    url = f"{settings.api_base_url}/openapi.json"
+    response = httpx.get(url, timeout=settings.request_timeout)
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"Could not fetch the OpenAPI document from {url} "
+            f"({response.status_code}). Contract tests have nothing to validate "
+            f"against without it."
+        )
+    document = response.json()
+    if "components" not in document or "schemas" not in document["components"]:
+        raise RuntimeError(
+            f"{url} returned a document with no component schemas, so there is "
+            f"no declared contract to check responses against."
+        )
+    return document
+
+
+@pytest.fixture(scope="session")
+def live_responses(api) -> dict[str, dict]:
+    """One real response body per critical model, taken from seeded data.
+
+    Raw dictionaries, deliberately — not parsed models. Parsing through the
+    suite's own Pydantic classes would discard exactly what these tests exist to
+    inspect: unexpected keys, and values whose type the model was willing to
+    coerce.
+    """
+    raw = api.raw()
+    campaign_id = CAMPAIGN_SENT
+
+    page = raw.get("/api/contacts", params={"size": 1}, expect=200).json()
+    deliveries = raw.get(f"/api/campaigns/{campaign_id}/deliveries", expect=200).json()
+
+    assert page["items"], "no seeded contacts to validate a response against"
+    assert deliveries, f"seeded campaign {campaign_id} has no deliveries to validate"
+
+    return {
+        "ContactOut": page["items"][0],
+        "SegmentOut": raw.get(f"/api/segments/{SEGMENT_ENTERPRISE_RULE}", expect=200).json(),
+        "CampaignOut": raw.get(f"/api/campaigns/{campaign_id}", expect=200).json(),
+        "DeliveryOut": deliveries[0],
+        "CampaignStats": raw.get(
+            f"/api/analytics/campaigns/{campaign_id}", expect=200
+        ).json(),
+    }

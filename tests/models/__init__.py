@@ -49,7 +49,9 @@ class Contact(BaseModel):
     last_name: str
     country: str
     plan: str
-    attributes: dict[str, Any]
+    # Optional by contract: the application declares a default of {}, so a
+    # response may omit it. The contract tests hold both sides to that.
+    attributes: dict[str, Any] = {}
     created_at: datetime
 
 
