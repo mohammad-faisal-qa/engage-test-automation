@@ -1,0 +1,6 @@
+13:05:50 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
+13:05:50 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (323 ms)
+13:05:50 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 403 Forbidden"
+13:05:50 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 403 (6 ms)
+13:05:50 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts?q=contact.f10fba4b%40qa.example.com "HTTP/1.1 200 OK"
+13:05:50 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts?q=contact.f10fba4b%40qa.example.com -> 200 (9 ms)

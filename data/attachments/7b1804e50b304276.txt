@@ -1,0 +1,6 @@
+13:05:51 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
+13:05:51 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (312 ms)
+13:05:51 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+13:05:51 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (14 ms)
+13:05:51 INFO  httpx | HTTP Request: DELETE http://127.0.0.1:8000/api/contacts/111 "HTTP/1.1 204 No Content"
+13:05:51 INFO  tests.http | DELETE http://127.0.0.1:8000/api/contacts/111 -> 204 (6 ms)

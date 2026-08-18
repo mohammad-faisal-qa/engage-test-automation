@@ -1,0 +1,54 @@
+HTTP 200
+
+{
+  "items": [
+    {
+      "attributes": {
+        "lifetime_value": 1644,
+        "newsletter": true,
+        "signup_source": "organic"
+      },
+      "country": "IN",
+      "created_at": "2026-01-01T21:00:00Z",
+      "email": "aisha.garcia12@acme.example.com",
+      "first_name": "Aisha",
+      "id": 12,
+      "last_name": "Garcia",
+      "plan": "free",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 3288,
+        "newsletter": true,
+        "signup_source": "organic"
+      },
+      "country": "AU",
+      "created_at": "2026-01-02T09:00:00Z",
+      "email": "aisha.costa24@acme.example.com",
+      "first_name": "Aisha",
+      "id": 24,
+      "last_name": "Costa",
+      "plan": "free",
+      "tenant_id": "acme"
+    },
+    {
+      "attributes": {
+        "lifetime_value": 4932,
+        "newsletter": true,
+        "signup_source": "organic"
+      },
+      "country": "GB",
+      "created_at": "2026-01-02T21:00:00Z",
+      "email": "aisha.iqbal36@acme.example.com",
+      "first_name": "Aisha",
+      "id": 36,
+      "last_name": "Iqbal",
+      "plan": "free",
+      "tenant_id": "acme"
+    }
+  ],
+  "page": 1,
+  "size": 100,
+  "total": 3
+}

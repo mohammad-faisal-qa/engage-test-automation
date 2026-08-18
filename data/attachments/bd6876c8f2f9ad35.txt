@@ -1,0 +1,17 @@
+HTTP 200
+
+{
+  "attributes": {
+    "lifetime_value": 2500,
+    "newsletter": true,
+    "signup_source": "automation"
+  },
+  "country": "US",
+  "created_at": "2026-08-18T13:05:42.772836Z",
+  "email": "contact.813b29b0@qa.example.com",
+  "first_name": "Test",
+  "id": 65,
+  "last_name": "Contact813b29b0",
+  "plan": "pro",
+  "tenant_id": "acme"
+}
