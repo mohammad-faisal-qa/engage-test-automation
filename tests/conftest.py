@@ -9,6 +9,7 @@ happen before any test in any worker touches a row.
 from __future__ import annotations
 
 import logging
+import os
 import platform
 import subprocess
 import sys
@@ -265,6 +266,18 @@ def pytest_collection_modifyitems(
     if items:
         return
 
+    # One selector is legitimately empty: the destructive job runs `-m
+    # destructive` on every build, and there are no destructive tests yet. That
+    # is a known, deliberate emptiness, so it is opted out explicitly and per
+    # job — which keeps the guard's meaning intact. An accidental empty
+    # selection is still an error, because nothing sets this by accident.
+    if os.environ.get("PYTEST_ALLOW_EMPTY_SELECTION") == "1":
+        logger.warning(
+            "No tests were selected, but PYTEST_ALLOW_EMPTY_SELECTION=1 is set, "
+            "so this run is allowed to pass having verified nothing."
+        )
+        return
+
     selectors = []
     if getattr(config.option, "markexpr", ""):
         selectors.append(f"-m {config.option.markexpr!r}")
@@ -276,7 +289,9 @@ def pytest_collection_modifyitems(
         + (" and ".join(selectors) if selectors else "the arguments given")
         + ".\n"
         "Refusing to report success for a run that verified nothing. Check the "
-        "expression against the markers registered in pyproject.toml."
+        "expression against the markers registered in pyproject.toml.\n"
+        "If this selection is legitimately empty, set "
+        "PYTEST_ALLOW_EMPTY_SELECTION=1 for that run specifically."
     )
 
 

@@ -1,0 +1,187 @@
+name: PR gate
+
+# The gate builds the application from source and tests it against a throwaway
+# database, so it is free to reset and rewrite as much as it likes. That is the
+# difference between this and deployed-smoke.yml, which may not write at all.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# A second push should not race the first one to publish a report.
+concurrency:
+  group: pr-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Postgres, not SQLite, and a service container rather than Neon: the same
+  # engine as production without burning the free compute budget or depending on
+  # an external tier being healthy.
+  DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/engage
+
+jobs:
+  smoke:
+    name: Smoke
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: engage
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/boot-app
+        with:
+          database-url: ${{ env.DATABASE_URL }}
+      - name: pytest -m smoke
+        run: pytest -m smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-smoke
+          path: reports/allure-results
+          if-no-files-found: ignore
+
+  regression:
+    name: Regression
+    needs: smoke
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: engage
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/boot-app
+        with:
+          database-url: ${{ env.DATABASE_URL }}
+      - name: pytest -m "not smoke and not destructive" -n 4
+        run: pytest -m "not smoke and not destructive" -n 4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-regression
+          path: reports/allure-results
+          if-no-files-found: ignore
+
+  destructive:
+    name: Destructive
+    needs: smoke
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: engage
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/boot-app
+        with:
+          database-url: ${{ env.DATABASE_URL }}
+      - name: pytest -m destructive (serial)
+        env:
+          # There are no destructive tests yet, and this job runs on every build.
+          # The empty selection is therefore known and deliberate, so it is opted
+          # out here and nowhere else — an accidental empty selection anywhere
+          # else is still a hard error.
+          PYTEST_ALLOW_EMPTY_SELECTION: "1"
+        run: |
+          # Serial on purpose: these tests need exclusive database state.
+          set +e
+          pytest -m destructive
+          code=$?
+          set -e
+          # 5 is pytest's "no tests were collected", which is the expected
+          # outcome until the first destructive test is written.
+          if [ "$code" -eq 5 ]; then
+            echo "No destructive tests exist yet — nothing to run."
+            exit 0
+          fi
+          exit "$code"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-destructive
+          path: reports/allure-results
+          if-no-files-found: ignore
+
+  report:
+    name: Publish Allure report
+    needs: [smoke, regression, destructive]
+    # A failing run is the one most worth reading, so the report publishes
+    # whatever happened rather than only on success.
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect every job's results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          path: downloaded
+          merge-multiple: true
+
+      - name: Restore Allure history
+        # Without the previous run's history, every report shows a single run
+        # and the trend and flaky-test views never populate. Missing on the
+        # first run, which is why this may fail harmlessly.
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Merge history into the new results
+        run: |
+          mkdir -p downloaded
+          if [ -d gh-pages/history ]; then
+            cp -r gh-pages/history downloaded/history
+            echo "Restored history from gh-pages."
+          else
+            echo "No previous history — this will be the first report."
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Generate the report
+        run: |
+          npm install -g allure-commandline --silent
+          allure generate downloaded --clean -o allure-report
+
+      - name: Publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+          publish_branch: gh-pages

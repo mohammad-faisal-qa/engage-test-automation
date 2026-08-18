@@ -289,80 +289,95 @@ allure serve reports/allure-results   # report opens, requests attached
 
 ## Phase 7 — CI and published reports
 
-**Goal:** green badge, live Allure report with history, and a standing check that the deployed demo
-is still alive.
+**Goal:** green badge, live Allure report with history, and a standing check that the deployed
+demo is still alive.
 
-### The shape the split forces
+This is the agreed design, in full, so it never has to be restated.
 
-The application is in another repository, so CI has to bring it in. Two jobs, and the difference
-between them is the whole design:
+### Why two workflows and not one
 
-**`pr-gate`** builds the app from source and tests it in isolation. It checks out this repository,
-then checks out `mohammad-faisal-qa/engage-app` at `main` into a subdirectory, installs
-`api/requirements.txt`, and boots `uvicorn` against a **Postgres service container** — not Neon, so
-CI never burns the free compute budget and never fails because an external tier is having a bad day.
-It polls `/api/health` until the app answers, then runs the suite at `-n 4`.
+The application is in another repository, and there are two entirely different questions to ask
+about it. Keeping them in one workflow would blur them.
 
-**Do not pin the app to a commit.** Pinning would make this suite pass forever against a frozen
-application, which is the opposite of what it is for — the job of a PR gate here is to notice when
-the app moves underneath the tests. Check out `main` and record which `main` you got: write the
-app's commit SHA into `environment.properties` so every Allure report says exactly what it tested.
-A failure six weeks later is then attributable instead of mysterious.
+**`pr-gate.yml` asks "does this framework pass against the application as it is right now?"** It
+builds the app from source against a throwaway database, so it may reset, truncate and rewrite
+freely. It is the gate.
 
-**`deployed-smoke`** runs the same suite against the real Render deployment, and is the only job
-allowed to touch it. Two rules make that safe:
+**`deployed-smoke.yml` asks "is the public demo still alive?"** It runs against the real Render
+instance, which is a live demo someone may be looking at, so it may not write anything at all. It
+is monitoring, not gating, which is why it runs on a schedule rather than on a push.
 
-- `RESET_DATABASE=false` — the deployed database is a live demo someone may be looking at, and it
-  is also shared. Nothing may wipe it.
-- `-m readonly` — a marker of its own, not `smoke`. Reusing `smoke` would be the bug: the moment a
-  smoke test starts creating a contact, this job silently begins writing to the public demo. A
-  separate marker makes "safe against a shared environment" a property a test has to claim.
+### `pr-gate.yml`
+
+```
+triggers      push · pull_request · workflow_dispatch
+services      postgres:16 container (never Neon — no free compute burned, no
+              dependency on an external tier being healthy)
+checkout      engage-test-automation, plus engage-app at main into a subdirectory
+install       engage-app/api/requirements.txt and tests/requirements-test.txt
+boot          uvicorn against the service container, then poll /api/health until
+              it answers — never sleep a fixed number of seconds
+
+job 1  smoke        pytest -m smoke                                   fast gate
+job 2  regression   pytest -m "not smoke and not destructive" -n 4    the bulk
+job 3  destructive  pytest -m destructive                             serial
+job 4  report       needs the test jobs · if: always()
+                    merge allure results · restore history from gh-pages ·
+                    publish to https://mohammad-faisal-qa.github.io/engage-test-automation/
+```
+
+**Do not pin the application to a commit.** Pinning would make the suite pass forever against a
+frozen application, which is the opposite of what a gate is for — the job here is to notice when
+the app moves underneath the tests. Check out `main`, and record which `main` you got: the SHA
+goes into `environment.properties` so a red build says which application version it tested. A
+failure six weeks later is then attributable instead of mysterious.
+
+The report job runs `if: always()` because a failing run is exactly the one worth reading, and it
+restores Allure history from `gh-pages` first, without which every report shows a single run and
+trend and flaky detection never work.
+
+### `deployed-smoke.yml`
+
+```
+triggers      schedule (daily) · workflow_dispatch
+target        https://engage-api-b6yg.onrender.com
+selection     pytest -m readonly
+environment   RESET_DATABASE=false
+              TEST_API_KEY from GitHub secrets
+timeout       generous — see below
+```
+
+Two rules make this safe against a live demo, and the second is the one that is easy to get wrong:
+
+- **`RESET_DATABASE=false`.** The deployed database is shared and public. Nothing here may wipe it.
+- **`-m readonly`, never `-m smoke`.** They look interchangeable and are not: one of the smoke
+  tests attempts a write. Pointing this job at `smoke` would have it POST to the public demo on a
+  schedule. `readonly` is a promise a test makes about itself — creates nothing, mutates nothing —
+  and it has to be claimed deliberately, which is the entire point of it being a separate marker.
 
 Give it a **generous timeout**. The free Render instance sleeps after 15 minutes idle and takes
-about a minute to wake, so the first request is slow by design — a tight timeout turns a working
-deployment into a red build.
+about a minute to wake, so the first request of the day is slow by design. A tight timeout turns a
+perfectly healthy deployment into a red build and trains everyone to ignore the alert.
 
-```
-on: push · pull_request · schedule "30 0 * * *" · workflow_dispatch
+### README
 
-pr-gate          postgres service container
-                 checkout engage-test-automation + engage-app@main
-                 pip install api/requirements.txt · playwright install --with-deps chromium
-                 boot uvicorn · poll /api/health · pytest -n 4
-                 record the app SHA in environment.properties
-deployed-smoke   RESET_DATABASE=false · API_BASE_URL=<render url>
-                 pytest -m readonly · long timeout for the cold start
-destructive      needs: pr-gate · pytest -m destructive (serial)
-report           needs: [pr-gate, destructive] · if: always()
-                 merge results · restore history from gh-pages · publish
-```
+Two badges: build status, and a link to the published report.
 
-- Report publishes to `https://mohammad-faisal-qa.github.io/engage-test-automation/`
-- **History preserved** across runs so trends and flaky detection work
-- `TEST_API_KEY` comes from repo secrets. `deployed-smoke` needs it only if a read-only test ever
-  calls a guarded endpoint; `pr-gate` sets its own value for the app it just booted
-- README badges: build status, link to the latest report
-
-**Done when** a push produces a green badge and a live report URL; a deliberately failing test still
-publishes; and the report's environment panel names the app commit that was tested.
+**Done when** a push produces a green badge and a live report URL; a deliberately failing test
+still publishes; and the report's environment panel names the application commit that was tested.
 
 **Prompt**
 
 > Phase 7: CI and published Allure reports, across two repositories.
 >
-> Build `.github/workflows/tests.yml`. The `pr-gate` job checks out `engage-app` at `main`
-> alongside this repo, installs `api/requirements.txt`, boots uvicorn against a Postgres service
-> container, polls `/api/health`, and runs at `-n 4`. Do not pin the app to a commit — check out
-> `main` and write the SHA you got into `environment.properties`.
+> Build `pr-gate.yml` and `deployed-smoke.yml` exactly as described above. The gate boots the app
+> from `engage-app@main` against a postgres:16 service container and polls `/api/health`; it must
+> not pin the app commit, and must record the SHA it tested in `environment.properties`. The
+> deployed smoke job runs `-m readonly` with `RESET_DATABASE=false` against Render, with a timeout
+> that survives a cold start.
 >
-> Add a separate `deployed-smoke` job against the Render URL with `RESET_DATABASE=false` and its own
-> `readonly` marker, with a timeout generous enough for a cold start.
->
-> The report job must run with `if: always()` so failures still publish, and must preserve Allure
-> history across runs.
->
-> Explain why `deployed-smoke` uses its own marker rather than reusing `smoke` — I need to be able
-> to articulate what would go wrong if it did.
+> Explain why the deployed job uses its own marker rather than reusing `smoke` — I need to be able
+> to say what would go wrong if it did.
 
 ---
 

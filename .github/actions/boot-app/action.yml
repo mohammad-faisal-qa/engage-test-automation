@@ -1,0 +1,103 @@
+name: Boot the application under test
+description: >
+  Check out engage-app at main, install it, run it against the job's Postgres
+  service container, and wait until /api/health answers. Shared by every job in
+  the gate, because three copies of this would drift apart within a month.
+
+inputs:
+  database-url:
+    description: Connection string for the job's Postgres service container.
+    required: true
+  python-version:
+    description: >
+      Matches the runtime Render deploys (render.yaml pins PYTHON_VERSION), so
+      the gate exercises the interpreter production actually uses.
+    required: false
+    default: "3.13"
+
+outputs:
+  app-commit-sha:
+    description: The engage-app commit this run tested.
+    value: ${{ steps.app.outputs.sha }}
+
+runs:
+  using: composite
+  steps:
+    # Tracking main, never a pinned SHA. A pinned application would let this
+    # suite pass forever against a frozen target, which is the opposite of what
+    # a gate is for — the point is to notice when the app moves underneath it.
+    - name: Check out engage-app at main
+      uses: actions/checkout@v4
+      with:
+        repository: mohammad-faisal-qa/engage-app
+        ref: main
+        path: engage-app
+
+    - name: Record which commit of the app this is
+      id: app
+      shell: bash
+      run: |
+        sha="$(git -C engage-app rev-parse HEAD)"
+        echo "sha=$sha" >> "$GITHUB_OUTPUT"
+        # Read by tests/config/settings.py and written into
+        # environment.properties, so a red build names the app version it tested.
+        echo "APP_COMMIT_SHA=$sha" >> "$GITHUB_ENV"
+        echo "Testing engage-app at $sha"
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: pip
+
+    - name: Install the application and the test framework
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r engage-app/api/requirements.txt
+        pip install -r tests/requirements-test.txt
+
+    - name: Generate this run's secrets
+      shell: bash
+      run: |
+        # Generated per run and thrown away with the runner. The application and
+        # the suite must agree on TEST_API_KEY, so both read it from here.
+        {
+          echo "DATABASE_URL=${{ inputs.database-url }}"
+          echo "TEST_API_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+          echo "JWT_SECRET=$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+          echo "WEBHOOK_SECRET=$(python -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          # Widened deliberately: a token expiring mid-run shows up as random
+          # 401s that look like a flaky suite rather than a short-lived token.
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=480"
+          echo "API_BASE_URL=http://127.0.0.1:8000"
+        } >> "$GITHUB_ENV"
+
+    - name: Start the API
+      shell: bash
+      working-directory: engage-app/api
+      run: |
+        nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 \
+          > "$RUNNER_TEMP/uvicorn.log" 2>&1 &
+        echo "$!" > "$RUNNER_TEMP/uvicorn.pid"
+
+    - name: Wait for /api/health
+      shell: bash
+      run: |
+        # Polled, never slept. A fixed sleep is simultaneously too long when the
+        # runner is fast and too short when it is loaded.
+        for attempt in $(seq 1 60); do
+          body="$(curl -fsS --max-time 5 http://127.0.0.1:8000/api/health || true)"
+          case "$body" in
+            *'"status":"ok"'*)
+              echo "API healthy after ${attempt}s: $body"
+              exit 0 ;;
+            *degraded*)
+              echo "API is up but degraded: $body"
+              echo "--- uvicorn log ---"; cat "$RUNNER_TEMP/uvicorn.log"
+              exit 1 ;;
+          esac
+          sleep 1
+        done
+        echo "API never became healthy."
+        echo "--- uvicorn log ---"; cat "$RUNNER_TEMP/uvicorn.log"
+        exit 1
