@@ -1,0 +1,6 @@
+11:37:54 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/1 "HTTP/1.1 200 OK"
+11:37:54 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/1 -> 200 (6 ms)
+11:37:54 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/4 "HTTP/1.1 404 Not Found"
+11:37:54 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/4 -> 404 (11 ms)
+11:37:54 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/4 "HTTP/1.1 200 OK"
+11:37:54 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/4 -> 200 (11 ms)
