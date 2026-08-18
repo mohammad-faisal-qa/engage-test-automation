@@ -3,9 +3,10 @@
 import allure
 import pytest
 
-pytestmark = [pytest.mark.api, pytest.mark.smoke]
+pytestmark = [pytest.mark.api]
 
 
+@pytest.mark.smoke
 @allure.feature("Authentication")
 @allure.story("A successful login identifies the caller's tenant and role")
 def test_login_returns_a_token_that_identifies_the_user(api, settings):

@@ -5,7 +5,7 @@ import pytest
 
 from data.factories import contact_payload
 
-pytestmark = [pytest.mark.api, pytest.mark.smoke]
+pytestmark = [pytest.mark.api]
 
 
 @allure.feature("Authorisation")

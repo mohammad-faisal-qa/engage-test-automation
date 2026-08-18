@@ -62,6 +62,17 @@ class ApiClients:
     def contacts(self, role: str = "admin", tenant: str = "acme") -> ContactsClient:
         return self._client(ContactsClient, role, tenant)
 
+    def raw(self, role: str = "admin", tenant: str = "acme") -> BaseClient:
+        """An authenticated client with no service methods, for paths that have
+        no client yet.
+
+        Phase 1 builds auth and contacts clients only, but the seeded facts in
+        data/constants.py also cover segments and campaigns. Writing two throwaway
+        half-clients now — to be rewritten properly in Phase 2 — would cost more
+        than exposing the plumbing for the one test that needs it.
+        """
+        return self._client(BaseClient, role, tenant)
+
     # --- lifecycle ---------------------------------------------------------
 
     def close(self) -> None:

@@ -61,6 +61,14 @@ class TestSettings(BaseSettings):
     # wiped — a shared demo, or someone else's session.
     reset_database: bool = True
 
+    # --- provenance ---
+    # Which commit of the application was tested. CI knows this exactly: it
+    # checks engage-app out and can pass the SHA in. Locally it is discovered
+    # from a sibling checkout, and if there isn't one the report says "unknown"
+    # rather than guessing — a wrong SHA is worse than an absent one.
+    app_commit_sha: str = ""
+    app_repo_path: str = "../engage-app"
+
     def user_email(self, role: str, tenant: str) -> str:
         """The seeded login for a role within a tenant."""
         if role not in ROLES:

@@ -25,6 +25,10 @@ markers = [
   "e2e: BDD journeys",
   "contract: OpenAPI schema validation",
   "destructive: needs exclusive database state",
+  # Claimed by a test, not inferred: the deployed-smoke job runs -m readonly
+  # against the live demo, so a test wearing this marker is promising it
+  # creates and mutates nothing. Tests get tagged when that job is built.
+  "readonly: safe against a shared or deployed environment",
   "slow: over 10 seconds",
 ]
 
@@ -35,4 +39,17 @@ log_level = "INFO"
 log_format = "%(asctime)s %(levelname)-5s %(name)s | %(message)s"
 log_date_format = "%H:%M:%S"
 
-filterwarnings = ["error::DeprecationWarning:tests.*"]
+# A DeprecationWarning is a scheduled future failure, so it is an error here.
+#
+# This used to read `error::DeprecationWarning:tests.*`, which was silently
+# inactive: the third field is a regex matched against the module that raises
+# the warning, and with `pythonpath = ["tests"]` the suite imports as
+# `api_tests.*`, `clients.*`, `config.*` — never `tests.*`. It matched nothing
+# and therefore enforced nothing, which is worse than having no rule, because
+# the file claimed a guarantee that was not there.
+#
+# Unscoped now, deliberately. Naming our own packages would reintroduce the same
+# failure: a package added later would fall outside the list and be silently
+# exempt. If a dependency starts emitting one, add an explicit ignore below it
+# with a note — visible, and revisited when the dependency is upgraded.
+filterwarnings = ["error::DeprecationWarning"]

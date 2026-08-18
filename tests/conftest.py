@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import platform
+import subprocess
 import sys
 from pathlib import Path
 
@@ -18,9 +19,28 @@ import pytest
 from filelock import FileLock
 
 from clients import ApiClients
-from config.settings import TestSettings, get_settings
+from config.settings import REPO_ROOT, TestSettings, get_settings
 
 logger = logging.getLogger("tests.setup")
+
+# The application and this suite each read their own .env since the split, so
+# TEST_API_KEY exists in two places and nothing keeps them in step. When they
+# disagree the API answers 401, which reads like a broken test rather than a
+# stale secret — so say what it actually is, and where both copies live.
+CONFIGS_DRIFTED = """The configurations have drifted.
+
+TEST_API_KEY in this repository does not match the one the application under
+test was started with. They are separate files that nothing synchronises:
+
+    this suite   {root}/.env
+    the app      the engage-app checkout's .env, for a local server
+                 the Render dashboard, for the deployed instance
+
+Set both to the same value and run again."""
+
+
+def _drift_message() -> str:
+    return CONFIGS_DRIFTED.format(root=REPO_ROOT)
 
 # --------------------------------------------------------------------------
 # Settings
@@ -65,14 +85,37 @@ def _check_api_is_up(settings: TestSettings) -> None:
         )
 
 
-def _reset_database(settings: TestSettings) -> dict:
-    """Put the database into the known seeded state, in one call."""
+def _check_test_key(settings: TestSettings) -> None:
+    """Refuse to start without the shared secret, and say where to put it.
+
+    This runs before anything else touches the API. Without it the first failure
+    is whatever test happened to run first, reported as that test's problem.
+
+    Note what this deliberately does *not* do: probe the key by calling a
+    guarded endpoint. Every one of them — reset, seed, truncate — writes. There
+    is no read-only call that proves the right key works, so a probe would mean
+    wiping a database in order to find out whether we were allowed to. When the
+    session is going to reset anyway that check comes for free below; when it is
+    not, the key stays unproven and this says so rather than implying otherwise.
+    """
     if not settings.test_api_key:
         raise RuntimeError(
-            "TEST_API_KEY is not set, so the suite cannot reset the database.\n"
-            "Add it to the repo-root .env (the value the API was started with)."
+            "TEST_API_KEY is not set, so the suite cannot put the database into "
+            "a known state.\n"
+            f"Copy .env.example to {REPO_ROOT}/.env and set it to the value the "
+            "application was started with."
         )
 
+    if not settings.reset_database:
+        logger.warning(
+            "RESET_DATABASE=false: the database will not be reset, and "
+            "TEST_API_KEY cannot be verified without writing to the target. A "
+            "401 from a later guarded call means the configs have drifted."
+        )
+
+
+def _reset_database(settings: TestSettings) -> dict:
+    """Put the database into the known seeded state, in one call."""
     # Logged because wiping a database is not a thing that should happen
     # invisibly — the report should say it did, and which worker did it.
     logger.info("Resetting database at %s", settings.api_base_url)
@@ -81,6 +124,19 @@ def _reset_database(settings: TestSettings) -> dict:
         headers={"X-Test-Key": settings.test_api_key},
         timeout=settings.request_timeout,
     )
+    # This call is also the only proof that TEST_API_KEY is correct, so its
+    # failures are worth telling apart: a rejected key is a configuration
+    # problem, a disabled endpoint is a different configuration problem, and
+    # anything else is the application being broken.
+    if response.status_code == 401:
+        raise RuntimeError(_drift_message())
+    if response.status_code == 503:
+        raise RuntimeError(
+            "The application has no TEST_API_KEY configured, so its test "
+            "endpoints are disabled and the database cannot be reset.\n"
+            f"    POST /api/test/reset -> 503 {response.text[:200]}\n"
+            "Set TEST_API_KEY for the application, not only for this suite."
+        )
     if response.status_code != 200:
         raise RuntimeError(
             f"Database reset failed: POST /api/test/reset -> "
@@ -116,6 +172,7 @@ def database_state(settings: TestSettings, tmp_path_factory, worker_id: str) -> 
     rows the other's tests are mid-way through reading.
     """
     _check_api_is_up(settings)
+    _check_test_key(settings)
 
     if not settings.reset_database:
         return
@@ -186,6 +243,72 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 
+@pytest.hookimpl(trylast=True)
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    """Fail the run when the selection is empty.
+
+    `trylast` is load-bearing: `-m` deselection happens in pytest's own
+    implementation of this same hook, and without it this one runs first, sees
+    the full un-deselected list, and never fires — a guard that is itself
+    silently inactive, which is precisely the class of bug it exists to catch.
+
+    pytest exits 5 for "no tests ran", and plenty of CI configurations treat
+    anything non-zero as red — but plenty of others check only for failures, and
+    a job that deselects everything then reports a green tick having verified
+    nothing. That is the worst possible outcome: silence that looks like proof.
+
+    A marker typo is the usual cause, and `--strict-markers` cannot catch it,
+    because that guards markers applied to tests, not markers named in `-m`.
+    """
+    if items:
+        return
+
+    selectors = []
+    if getattr(config.option, "markexpr", ""):
+        selectors.append(f"-m {config.option.markexpr!r}")
+    if getattr(config.option, "keyword", ""):
+        selectors.append(f"-k {config.option.keyword!r}")
+
+    raise pytest.UsageError(
+        "No tests were selected by "
+        + (" and ".join(selectors) if selectors else "the arguments given")
+        + ".\n"
+        "Refusing to report success for a run that verified nothing. Check the "
+        "expression against the markers registered in pyproject.toml."
+    )
+
+
+def _app_commit_sha(settings: TestSettings) -> str:
+    """Which commit of the application these results describe.
+
+    CI knows the answer exactly, because it checked the application out, and
+    passes it in as APP_COMMIT_SHA. Locally it is read from a sibling checkout
+    if there is one. Failing both, the report says "unknown": a stale or guessed
+    SHA is worse than none, because it would be believed.
+    """
+    if settings.app_commit_sha:
+        return settings.app_commit_sha
+
+    repo = Path(settings.app_repo_path)
+    if not repo.is_absolute():
+        repo = (REPO_ROOT / repo).resolve()
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+
+    return completed.stdout.strip() or "unknown"
+
+
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     """Record what was tested, so a report six months old still means something.
 
@@ -207,6 +330,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
             [
                 f"API.Base.URL={settings.api_base_url}",
                 f"Web.Base.URL={settings.web_base_url}",
+                # The application is a separate repository now, so a report that
+                # does not name the commit it tested cannot be reproduced. This
+                # is the difference between "the suite failed in August" and
+                # "the suite failed against engage-app 9e0645e".
+                f"App.Commit={_app_commit_sha(settings)}",
+                f"Database.Reset={str(settings.reset_database).lower()}",
                 f"Python={platform.python_version()}",
                 f"Platform={platform.platform()}",
                 f"Pytest={pytest.__version__}",
