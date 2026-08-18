@@ -56,7 +56,7 @@ tests/
 ├── data/                     factories.py · constants.py
 └── utils/                    waits.py · db.py · auth_state.py
 
-.github/workflows/tests.yml · demo-reset.yml
+.github/workflows/pr-gate.yml · deployed-smoke.yml · demo-reset.yml
 docs/  TEST_STRATEGY.md · TEST_PLAN_campaigns.md · METRICS.md · defects/
 pyproject.toml · Makefile · README.md
 ```
@@ -374,6 +374,36 @@ Two rules make this safe against a live demo, and the second is the one that is 
 Give it a **generous timeout**. The free Render instance sleeps after 15 minutes idle and takes
 about a minute to wake, so the first request of the day is slow by design. A tight timeout turns a
 perfectly healthy deployment into a red build and trains everyone to ignore the alert.
+
+### `demo-reset.yml`
+
+```
+triggers      schedule 00:00 UTC · workflow_dispatch
+target        POST /api/test/reset against the Render instance
+environment   TEST_API_KEY from GitHub secrets
+failure       any non-2xx fails the job
+```
+
+Restores the deployed demo to its seeded state once a day, and does two jobs
+while it is there.
+
+The obvious one is drift: the demo is public and writable, so without this it
+slowly fills with whatever visitors leave behind and stops matching the
+screenshots and the README.
+
+The second is that **`deployed-smoke.yml` depends on it, and the two are ordered
+on purpose.** The read-only selection includes the seed-data tests, which assert
+that the deployed rows are still the fixtures the suite expects — campaign 3 is
+the sent one, contact 41 belongs to globex. Anyone with the public URL can change
+that through the UI. Without a reset beforehand, those tests would go red for
+reasons that are nobody's defect, and an alert that cries wolf is one people stop
+reading. So: reset at 00:00, smoke at 00:30. The half hour is padding for a cold
+start on a sleeping free instance, not an estimate of how long a reset takes —
+awake, it takes seconds.
+
+Failing the job on a non-2xx makes it an uptime check as well. If the demo has
+stopped answering, this is the job that says so first, and it says so before the
+smoke run has a chance to report the same outage as thirty test failures.
 
 ### README
 

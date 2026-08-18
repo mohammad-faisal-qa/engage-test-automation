@@ -9,9 +9,16 @@ name: Deployed smoke
 # So it is monitoring rather than gating: scheduled, not triggered by a push.
 on:
   schedule:
-    # Daily. Nothing here depends on the time of day; it is early enough that a
-    # broken demo is known about before anyone is likely to open the portfolio.
-    - cron: "17 6 * * *"
+    # 00:30 UTC, thirty minutes after demo-reset.yml. The ordering is deliberate,
+    # not incidental: the seed-data tests in this selection assert that the
+    # deployed rows still match the fixtures — campaign 3 is the sent one,
+    # contact 41 belongs to globex — and the demo is public and writable, so a
+    # visitor can change any of that. Running after the reset means a failure
+    # here is a real defect rather than a stranger's leftovers.
+    #
+    # Thirty minutes is padding for a cold start on a free instance, not an
+    # estimate of how long a reset takes; it takes seconds once awake.
+    - cron: "30 0 * * *"
   workflow_dispatch:
 
 jobs:

@@ -1,0 +1,100 @@
+name: Demo reset
+
+# Restores the public demo to its seeded state once a day.
+#
+# Two jobs in one. The obvious one: the demo is public and writable, so without
+# this it accumulates whatever visitors leave behind and drifts away from the
+# state the screenshots and the README describe.
+#
+# The less obvious one, and the reason this runs half an hour before
+# deployed-smoke: that job asserts the seeded rows are still what the suite
+# expects — that campaign 3 is the sent one, that contact 41 belongs to globex.
+# Anyone can change those through the UI. Resetting first means a red
+# deployed-smoke means something is actually wrong, rather than that a visitor
+# clicked something last Tuesday.
+#
+# It doubles as an uptime check: a non-2xx fails the job, so a demo that has
+# stopped answering is noticed here first.
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  reset:
+    name: Reset the deployed demo
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      API_BASE_URL: https://engage-api-b6yg.onrender.com
+      TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+
+    steps:
+      - name: Wake the instance
+        # The free instance sleeps after 15 minutes idle, and at midnight it
+        # will certainly be asleep. Waking is polled separately from the reset
+        # so that the two failures stay distinguishable: "the demo is down" and
+        # "the reset was refused" want different responses from whoever reads
+        # this log.
+        run: |
+          for attempt in $(seq 1 60); do
+            body="$(curl -fsS --max-time 30 "$API_BASE_URL/api/health" || true)"
+            case "$body" in
+              *'"status":"ok"'*)
+                echo "Awake after ${attempt} attempt(s): $body"
+                exit 0 ;;
+              *degraded*)
+                echo "Reachable but degraded, so a reset would fail: $body"
+                exit 1 ;;
+            esac
+            echo "attempt ${attempt}: no healthy response yet"
+            sleep 5
+          done
+          echo "The deployed API never became healthy — the demo is down."
+          exit 1
+
+      - name: POST /api/test/reset
+        # One decisive call now that the instance is awake. Retrying here would
+        # only obscure things: the cold start was already absorbed above, so
+        # anything that fails at this point is a real answer — 401 for a key
+        # that no longer matches Render's, 503 for test endpoints that are not
+        # configured — and repeating it would not change it.
+        run: |
+          body="$(mktemp)"
+          code="$(curl -sS -o "$body" -w '%{http_code}' --max-time 120 \
+                    -X POST "$API_BASE_URL/api/test/reset" \
+                    -H "X-Test-Key: $TEST_API_KEY")"
+
+          echo "POST /api/test/reset -> HTTP $code"
+          cat "$body"
+          echo
+
+          case "$code" in
+            2*)
+              echo "Demo restored to its seeded state."
+              ;;
+            401)
+              echo "::error::The reset was refused. TEST_API_KEY in this repository's"
+              echo "::error::secrets no longer matches the value set on the Render service."
+              exit 1 ;;
+            503)
+              echo "::error::The application reports its test endpoints are disabled,"
+              echo "::error::which means TEST_API_KEY is not set on the Render service."
+              exit 1 ;;
+            *)
+              echo "::error::Unexpected response $code from the reset endpoint."
+              exit 1 ;;
+          esac
+
+      - name: Confirm the seed is back
+        # A 200 from the reset says the call was accepted. This says the data is
+        # actually there — cheap, and it turns "the job went green" into
+        # something with evidence behind it.
+        run: |
+          counts="$(curl -fsS --max-time 60 "$API_BASE_URL/api/health")"
+          echo "health after reset: $counts"
+          case "$counts" in
+            *'"status":"ok"'*) echo "Demo is healthy after the reset." ;;
+            *) echo "::error::The demo is not healthy after the reset: $counts"; exit 1 ;;
+          esac
