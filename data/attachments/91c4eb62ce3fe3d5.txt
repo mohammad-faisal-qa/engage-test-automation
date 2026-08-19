@@ -1,0 +1,17 @@
+HTTP 200
+
+{
+  "campaign_id": 17,
+  "channel": "email",
+  "click_rate": 0.0,
+  "clicked": 0,
+  "delivered": 2,
+  "delivery_rate": 100.0,
+  "failed": 0,
+  "name": "Campaign a60214bd",
+  "open_rate": 50.0,
+  "opened": 1,
+  "sent": 2,
+  "status": "sent",
+  "total": 2
+}

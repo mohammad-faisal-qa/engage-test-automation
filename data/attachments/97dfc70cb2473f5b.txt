@@ -1,0 +1,2 @@
+07:22:51 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 401 Unauthorized"
+07:22:51 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 401 (429 ms)
