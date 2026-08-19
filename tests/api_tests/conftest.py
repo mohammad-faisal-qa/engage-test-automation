@@ -12,10 +12,14 @@ it. Everything below builds a set that belongs to one test alone.
 
 from __future__ import annotations
 
+import logging
+
 import httpx
 import pytest
 
 from data.constants import CAMPAIGN_SENT, SEGMENT_ENTERPRISE_RULE
+logger = logging.getLogger("tests.setup")
+
 from data.factories import (
     campaign_payload,
     cohort_contact,
@@ -44,10 +48,25 @@ def cohort(api):
 
     yield marker, make
 
-    # Best effort. The session reset is the real guarantee; this just stops a
-    # long session accumulating rows nobody will look at again.
+    # Best effort, and it must stay that way: the session reset is the real
+    # guarantee, and this only stops a long session accumulating rows nobody
+    # will look at again.
+    #
+    # It has to swallow transport failures as well as bad statuses, and that is
+    # not defensive programming — it is DEF-001. Deleting a contact that has
+    # deliveries hits an unhandled IntegrityError in the application; usually
+    # that surfaces as a 500, but under CI's request density the connection is
+    # torn down instead, and an exception raised in teardown fails the test that
+    # had already passed. Two CI runs were lost to this before the request that
+    # caused it was named.
     for contact in created:
-        contacts.delete_one_response(contact.id)
+        try:
+            contacts.delete_one_response(contact.id)
+        except Exception as exc:  # noqa: BLE001 - cleanup must never fail a run
+            logger.warning(
+                "Could not clean up contact %s: %s: %s",
+                contact.id, type(exc).__name__, exc,
+            )
 
 
 @pytest.fixture

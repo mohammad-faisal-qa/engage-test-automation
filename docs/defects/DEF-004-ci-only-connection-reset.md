@@ -5,7 +5,7 @@
 | **Component** | engage-test-automation · `tests/clients/base.py` |
 | **Severity** | Medium — intermittent CI failures on correct code |
 | **Priority** | High — a gate that fails at random stops being read |
-| **Status** | Mitigated and diagnosable; **not proven eliminated** |
+| **Status** | **Root cause found — it is [DEF-001](DEF-001-delete-contact-with-deliveries-returns-500.md).** Framework side fixed; application defect still open |
 | **Found** | 2026-08-18, Phase 6, when the gate went red on a suite that had passed locally three times |
 
 ## Summary
@@ -65,12 +65,45 @@ produced it, and the cheapest way to tell them apart is to ship the fix and watc
 ## Current status, stated honestly
 
 Three consecutive green runs followed — and **zero retry warnings fired in any of them**. So the
-retry masked nothing; equally, the passes cannot be attributed to the mitigation. Those runs simply
-did not hit the race.
+retry masked nothing, and equally the passes could not be attributed to the mitigation. The correct
+claim at that point was: intermittent, handled, diagnosable, *not proven gone*.
 
-The correct claim is: **the failure is intermittent, now handled and now diagnosable.** It is not
-proven gone. If it recurs, the logs will name the request and the server's account of it, which is
-the position we could not reach before.
+## Then it recurred, and the diagnostics did their job
+
+The very next push — **a documentation-only change** — failed the gate again. Nothing about the
+suite had changed, which by itself ruled out the new tests. This time the error named the request:
+
+```
+clients.base.TransportFailure: DELETE http://127.0.0.1:8000/api/contacts/102
+failed at the transport level after 1 attempt(s): ReadError: [Errno 104] Connection reset by peer
+```
+
+**That is not a test request at all.** It is the cohort fixture's *best-effort cleanup*, deleting a
+contact after a delivery test — a contact that, by then, has deliveries referencing it.
+
+Which makes this the same defect as
+[DEF-001](DEF-001-delete-contact-with-deliveries-returns-500.md). Deleting a referenced contact hits
+an unhandled `IntegrityError` in the application. Usually that surfaces as a `500`; under CI's
+request density the connection is torn down mid-response instead, and because the call happens in
+fixture teardown, it errors a test that had already passed.
+
+Every previously puzzling detail follows from that single cause:
+
+| Observation | Explanation |
+|---|---|
+| Only ever the delivery tests | They are the only tests whose contacts have deliveries |
+| Reported as `ERROR`, never `FAILED` | It happens in teardown, after the test body succeeded |
+| Never reproduced locally, even at `-n 8` | Against Neon the 500 path completes; the reset needs CI's timing |
+| The keep-alive fix did not help | It was a real latent bug on a different path |
+| The retry did not help | `DELETE` is deliberately not retried — correctly, and the log says `attempt 1/1` |
+
+## Fix
+
+Framework side: the cohort cleanup now swallows transport failures as well as bad statuses, with a
+warning. That is not defensive programming for its own sake — cleanup is best-effort by definition,
+and an exception raised in teardown must never fail a test that passed.
+
+Application side: DEF-001 remains open. Fixing it removes the cause rather than the symptom.
 
 ## Why testing missed it
 

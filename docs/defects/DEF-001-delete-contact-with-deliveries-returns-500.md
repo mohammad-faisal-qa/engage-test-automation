@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Component** | engage-app · `api/app/routers/contacts.py` |
-| **Severity** | Medium — the request fails safely, but the caller is told nothing usable |
-| **Priority** | Medium — cheap to fix, and it will be hit by anyone tidying up contacts |
+| **Severity** | **High** — raised from Medium: the same unhandled error also destabilises CI, see [DEF-004](DEF-004-ci-only-connection-reset.md) |
+| **Priority** | **High** — three CI runs were lost to it before the cause was identified |
 | **Status** | Open — reported, not fixed (the application is a separate repository) |
 | **Found** | 2026-08-18, during Phase 6 CI triage |
 | **Found by** | Postgres constraint errors in the CI service-container log, then reproduced directly |
@@ -31,6 +31,12 @@ Three consequences, in order of how much they cost:
    unhandled-exception traceback for what is, in fact, correct behaviour.
 
 Data is never at risk: the contact and its deliveries are intact afterwards.
+
+**A fourth consequence, found later and worse than the other three.** Under a high request rate the
+unhandled exception does not reliably produce a 500 at all — the connection is reset mid-response.
+That turned this from a cosmetic error-handling gap into three lost CI runs and a day of misdirected
+investigation, because the symptom appeared in a completely different place: fixture teardown for
+the delivery tests. See [DEF-004](DEF-004-ci-only-connection-reset.md).
 
 ## Environment
 
@@ -87,7 +93,8 @@ through this path. The referenced-contact case was never constructed on purpose.
 deliberately decided not to assert on. *Best-effort cleanup is a place where defects go to hide.*
 
 It surfaced only because CI prints the Postgres container log, where the constraint violations were
-too repetitive to ignore.
+too repetitive to ignore — and even then it was filed as cosmetic. Its real cost was only understood
+once the transport errors in DEF-004 were made to name the request that caused them.
 
 ## Suggested fix
 

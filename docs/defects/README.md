@@ -10,10 +10,14 @@ not.
 
 | ID | Title | Severity | Priority | Status |
 |---|---|---|---|---|
-| [DEF-001](DEF-001-delete-contact-with-deliveries-returns-500.md) | Deleting a contact that has deliveries returns 500 | Medium | Medium | Open |
+| [DEF-001](DEF-001-delete-contact-with-deliveries-returns-500.md) | Deleting a contact that has deliveries returns 500 | High | High | Open |
 | [DEF-002](DEF-002-viewer-reaches-edit-route.md) | A viewer can open the segment editor by URL | Low | Low | Open |
 | [DEF-003](DEF-003-sticky-wait-always-succeeds.md) | A wait that always succeeded, in our own framework | High | High | Fixed |
-| [DEF-004](DEF-004-ci-only-connection-reset.md) | Connection reset in CI only, and a wrong first diagnosis | Medium | High | Mitigated |
+| [DEF-004](DEF-004-ci-only-connection-reset.md) | Connection reset in CI only, and a wrong first diagnosis | Medium | High | Cause found — same as DEF-001 |
+
+**DEF-001 and DEF-004 turned out to be one defect seen from two ends.** They are kept as separate
+reports because they were found separately, investigated separately, and cost differently — and
+because the link between them is the most useful thing in either. Merging them would hide it.
 
 ## On severity versus priority
 
