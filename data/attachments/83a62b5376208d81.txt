@@ -1,0 +1,11 @@
+POST http://127.0.0.1:8000/api/notifications/6/impressions?contact_id=112
+
+{
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate",
+  "authorization": "<redacted>",
+  "connection": "keep-alive",
+  "content-length": "0",
+  "host": "127.0.0.1:8000",
+  "user-agent": "python-httpx/0.28.1"
+}

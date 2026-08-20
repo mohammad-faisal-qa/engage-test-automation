@@ -1,0 +1,4 @@
+10:38:29 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns "HTTP/1.1 201 Created"
+10:38:29 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns -> 201 (9 ms)
+10:38:29 INFO  httpx | HTTP Request: PATCH http://127.0.0.1:8000/api/campaigns/12 "HTTP/1.1 422 Unprocessable Content"
+10:38:29 INFO  tests.http | PATCH http://127.0.0.1:8000/api/campaigns/12 -> 422 (6 ms)

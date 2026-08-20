@@ -1,0 +1,10 @@
+10:38:26 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+10:38:26 INFO  tests.setup | Resetting database at http://127.0.0.1:8000
+10:38:28 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/test/reset "HTTP/1.1 200 OK"
+10:38:28 INFO  tests.setup | Database reset complete: {'tenants': 2, 'users': 6, 'contacts': 60, 'segments': 4, 'campaigns': 5, 'notifications': 3, 'surveys': 2, 'survey_responses': 5, 'deliveries': 15}
+10:38:29 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
+10:38:29 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (328 ms)
+10:38:29 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 422 Unprocessable Content"
+10:38:29 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 422 (8 ms)
+10:38:29 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts?q=not-an-email "HTTP/1.1 200 OK"
+10:38:29 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts?q=not-an-email -> 200 (12 ms)
