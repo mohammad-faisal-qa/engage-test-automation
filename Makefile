@@ -12,13 +12,14 @@ REPORT  := reports/allure-report
 # Extra pytest arguments: make smoke ARGS="-n 4"
 ARGS ?=
 
-.PHONY: install smoke api ui all regression destructive report report-static clean help
+.PHONY: install smoke api ui db all regression destructive report report-static clean help
 
 help:
 	@echo "make install    create the venv and install test dependencies"
 	@echo "make smoke      fast critical-path gate"
 	@echo "make api        API suite, 4 workers"
 	@echo "make ui         browser suite, 2 workers"
+	@echo "make db         database assertions (needs TEST_DATABASE_URL, else skips)"
 	@echo "make all        everything, 4 workers"
 	@echo "make report     open the Allure report"
 	@echo "make clean      wipe reports"
@@ -43,6 +44,12 @@ api:
 ui:
 	@rm -rf $(RESULTS)
 	$(PYTEST) -m ui -n 2 $(ARGS)
+
+# Skips cleanly with TEST_DATABASE_URL unset, which is the point — see
+# TEST_STRATEGY.md §9.
+db:
+	@rm -rf $(RESULTS)
+	$(PYTEST) -m db $(ARGS)
 
 all:
 	@rm -rf $(RESULTS)

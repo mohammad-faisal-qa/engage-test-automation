@@ -43,8 +43,8 @@ visible rather than implied.
 
 | # | Risk | Impact | Likelihood | Covered by |
 |---|---|---|---|---|
-| R1 | One tenant reads another's data | Catastrophic — contractual, and unrecoverable once it happens | Medium: every endpoint must remember to scope its query | 7 API tests + 1 BDD outline, per module, each with a control read |
-| R2 | A delivery is sent twice | High — a customer receives the same message twice; trust is spent | High: providers retry callbacks by design | 8 API tests asserting *one side effect*, not one response |
+| R1 | One tenant reads another's data | Catastrophic — contractual, and unrecoverable once it happens | Medium: every endpoint must remember to scope its query | 7 API tests + 1 BDD outline, per module, each with a control read; plus 3 storage checks for the tables HTTP cannot show (§9) |
+| R2 | A delivery is sent twice | High — a customer receives the same message twice; trust is spent | High: providers retry callbacks by design | 8 API tests asserting *one side effect*, not one response, + 1 storage check that the side effect is one row (§9) |
 | R3 | Segment selects the wrong people | High — the wrong audience receives a campaign | Medium: rules span a column and a JSON attribute | 8 API tests covering both field kinds and every operator |
 | R4 | A campaign reports as sent without sending | High — the funnel describes deliveries that do not exist | Medium: any "mark as done" shortcut | 6 API tests on the state machine |
 | R5 | Authorisation is wrong | High — a viewer writes, an editor deletes | Medium | 5 API + 3 UI tests, each with a positive control |
@@ -62,7 +62,7 @@ on the status code.
 
 ## 3. Test levels
 
-146 tests. The shape is deliberate and is not a pyramid — it is a consequence of where this
+151 tests. The shape is deliberate and is not a pyramid — it is a consequence of where this
 application's risk actually sits.
 
 | Level | Count | What it answers |
@@ -72,6 +72,11 @@ application's risk actually sits.
 | Browser (UI) | 24 | Does the interface work, and fail, correctly? |
 | BDD journeys | 16 | Do the business outcomes hold end to end? |
 | Guard (unit) | 7 | Does the suite refuse to destroy what it is protecting? |
+| Database | 5 | Is the stored data right where no response could show it? |
+
+The five database tests are the only ones that need something beyond a running application. Without
+`TEST_DATABASE_URL` they skip and the other 146 run, so a clone with no database is still green — see
+§9 for why they exist and the argument against them.
 
 **Why API-heavy.** The interesting behaviour in this product is server-side: rule evaluation, a
 state machine, idempotency, derived counts. Testing those through a browser would be slower, more
@@ -216,3 +221,83 @@ part worth testing — what the system does with a receipt — is unchanged eith
 **Retries as a way to pass.** No test in this suite is marked flaky-and-retried. A test that needs a
 rerun is a test that has stopped being evidence; the two we found were fixed at the cause (a wait
 that always succeeded, and a connection reused after the server had closed it).
+
+---
+
+## 9. The database assertion layer
+
+Five tests read the database directly. Every other test in this suite reaches the application over
+HTTP and would rather not know a database exists, so this section says what changed, what constrains
+it, and why a reasonable person might argue it should not exist at all.
+
+### Why it exists
+
+Three things this system can be wrong about have no HTTP representation whatsoever.
+
+| Fact | Why HTTP cannot show it |
+|---|---|
+| Every row carries the tenant of the record it belongs to | `DeliveryOut` has no `tenant_id` field; `webhook_events` and `notification_impressions` have no endpoint at all |
+| One idempotency key leaves exactly one stored event | `replayed: true` proves the *handler* deduplicated; it does not prove storage holds one row rather than two |
+| A deleted contact leaves no row behind | A `404` is identical whether the row is gone or merely hidden behind a filter |
+
+The first is the one that matters. Tenant isolation is already tested over HTTP as a *permission* —
+acme asks for globex's record and is told it does not exist. That is a different promise from the
+*storage* fact that the data was filed under the right owner to begin with, and a system can pass the
+first while failing the second. When it does, nothing reports it: the API answers correctly about the
+rows it can see, and the mis-stamped row stays invisible until it surfaces as one organisation's
+analytics quietly counting another's sends.
+
+### What was deliberately not written
+
+Every candidate had to pass one test: **could an API response reveal this failure?** Where the answer
+was yes, the check was dropped rather than written. Delivery rows are returned in full by
+`GET /api/campaigns/{id}/deliveries`, so asserting on their contents here would duplicate the HTTP
+layer and buy schema coupling for nothing. Segment membership, campaign state and analytics totals
+are all visible over HTTP and all stayed there.
+
+### The rules, and what enforces each
+
+| Rule | Enforced by |
+|---|---|
+| Reads only. No writes, no schema changes, no cleanup through this path | **Postgres.** Every transaction opens `BEGIN READ ONLY`, so an `INSERT`, `UPDATE`, `DELETE` or `ALTER` is refused by the server — `cannot execute DELETE in a read-only transaction`. A statement check in `utils/db.py` catches the same mistake earlier with a clearer message, but the server is the guarantee |
+| Its own URL — `TEST_DATABASE_URL`, never the application's `DATABASE_URL` | Configuration. Pointing the suite at a database is a separate, deliberate act from pointing the application at one |
+| Unset means skip, not fail | A session fixture. A fresh clone runs green with no database in sight |
+| CI points at the `postgres:16` service container, never Neon | The regression job is the only job that sets the variable, and it sets it to the same throwaway container the application is using |
+| Every `db` test states in its docstring why the API cannot show this | A collection-time check that fails the run — `pytest.UsageError`, exit 4, nothing executes |
+
+One implementation note worth recording, because the obvious approach fails silently in the wrong
+direction: passing `options=-c default_transaction_read_only=on` at connect time does **not** survive
+a connection pooler. Neon's pooled endpoint rejects it outright as an unsupported startup parameter,
+and every connection string in this project uses the pooled host. `BEGIN READ ONLY` is an ordinary
+statement inside the session, so it works through a pooler and makes the same promise.
+
+**The docstring rule is mechanical on purpose.** The risk this layer carries is not that these five
+queries are wrong — they are short and they are checked. It is that the door is now open, and the
+next person under time pressure reaches for SQL because it is quicker than making the API tell them.
+A rule in a document depends on someone reading the document. This one fails the build.
+
+### The honest argument against
+
+It is a real argument and it is not fully answered.
+
+**These tests know the schema, and the schema is not a contract.** Table and column names are
+internal. `webhook_events.idempotency_key` can be renamed by a refactor that breaks nothing a client
+depends on, and this suite will go red for it — a false failure, and the most expensive kind, because
+it teaches people that red means "the tests need updating" rather than "the application is wrong".
+Every other test here is insulated from that by construction, and these five are not.
+
+**Rot is the more likely outcome than breakage.** A test coupled to storage stays green while the
+meaning underneath it drifts. If `tenant_id` on `deliveries` were ever backfilled by a migration
+rather than written by the handler, the tenant-stamp check would keep passing and would have stopped
+testing what it claims to test. Nothing would announce that.
+
+**What tips the balance.** The alternative is not "test it somewhere better" — it is *not testing it*,
+because there is no HTTP surface to test it through. A cross-tenant storage bug is the single worst
+failure in the risk matrix (R1) and the only one with no other detector. Five queries against three
+table names is a small, visible coupling to accept for the one class of defect that would otherwise
+ship silently.
+
+**What would change the decision.** If the application ever exposed `tenant_id` on delivery
+responses, or an admin endpoint over webhook events, the first two tests should be rewritten against
+HTTP and this layer should shrink. It is meant to shrink. A database assertion layer that only ever
+grows is a suite that has given up on its API.

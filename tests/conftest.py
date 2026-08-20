@@ -380,6 +380,29 @@ def _describe_for_the_report(item: pytest.Item) -> None:
         item.function.__allure_display_name__ = title_template(name, parameters)
 
 
+# Every database test must say, in its own docstring, why the API cannot show
+# the failure it is looking for. That is the rule that keeps this layer from
+# growing into a parallel test suite written in SQL, and TEST_STRATEGY.md §9
+# states it — but a rule stated in a document is not a control. Someone has to
+# check it, and they have already decided the run went fine.
+#
+# So it is checked at collection. The check cannot judge whether the reasoning
+# is *good* — no check could — but it can refuse a test that never addressed the
+# question, which is the failure mode that actually happens.
+DB_JUSTIFICATION_HINTS = ("api cannot", "http cannot", "cannot see", "cannot show")
+
+
+def _db_tests_without_justification(items: list[pytest.Item]) -> list[str]:
+    offenders = []
+    for item in items:
+        if not any(m.name == "db" for m in item.iter_markers()):
+            continue
+        doc = (getattr(item.function, "__doc__", "") or "").lower()
+        if not any(hint in doc for hint in DB_JUSTIFICATION_HINTS):
+            offenders.append(item.nodeid)
+    return offenders
+
+
 @pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
@@ -391,6 +414,18 @@ def pytest_collection_modifyitems(
     """
     for item in items:
         _describe_for_the_report(item)
+
+    unjustified = _db_tests_without_justification(items)
+    if unjustified:
+        raise pytest.UsageError(
+            "Every test marked `db` must state in its docstring why the API "
+            "cannot show the failure it looks for. These do not:\n  "
+            + "\n  ".join(unjustified)
+            + "\n\nThe database layer exists for facts HTTP structurally cannot "
+              "expose. A check that could have been written against the API "
+              "duplicates it and couples the suite to the schema for nothing — "
+              "see TEST_STRATEGY.md §9. Say which it is, in the docstring."
+        )
 
     # The guard below fails the run when the selection is empty.
     #

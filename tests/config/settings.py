@@ -65,6 +65,12 @@ class TestSettings(BaseSettings):
     # wiped — a shared demo, or someone else's session.
     reset_database: bool = True
 
+    # --- the database assertion layer (Phase 9) ---
+    # Its own variable, never the application's DATABASE_URL. Unset means the
+    # db-marked tests skip, so a fresh clone runs green with no database at all.
+    # In CI this points at the Postgres service container and never at Neon.
+    test_database_url: str = ""
+
     # --- protecting the live demo ---
     # A reset is total, so the suite has to be able to recognise the one target
     # it must never perform one against. See utils/safety.py and DEF-005.
