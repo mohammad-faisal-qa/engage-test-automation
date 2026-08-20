@@ -22,6 +22,7 @@ from filelock import FileLock
 
 from clients import ApiClients
 from config.settings import REPO_ROOT, TestSettings, get_settings
+from utils.safety import looks_like_production, refusal_message
 from utils.reporting import (
     DEFECTS,
     MODULE_FEATURES,
@@ -70,7 +71,7 @@ def settings() -> TestSettings:
 # --------------------------------------------------------------------------
 
 
-def _check_api_is_up(settings: TestSettings) -> None:
+def _check_api_is_up(settings: TestSettings) -> str | None:
     """Fail with an instruction rather than a connection error.
 
     A stack trace from httpx tells you the socket was refused. It does not tell
@@ -95,6 +96,10 @@ def _check_api_is_up(settings: TestSettings) -> None:
             f"A 'degraded' status with an unreachable database usually means "
             f"DATABASE_URL is wrong or the database is asleep."
         )
+
+    # Which database this instance is actually on. Older builds do not report
+    # it, in which case the guard falls back to matching on the API hostname.
+    return body.get("database_endpoint")
 
 
 def _check_test_key(settings: TestSettings) -> None:
@@ -124,6 +129,32 @@ def _check_test_key(settings: TestSettings) -> None:
             "TEST_API_KEY cannot be verified without writing to the target. A "
             "401 from a later guarded call means the configs have drifted."
         )
+
+
+def _refuse_if_production(settings: TestSettings, database_endpoint: str | None) -> None:
+    """Stop before a reset that would destroy the live demo.
+
+    DEF-005 in one function. The check runs on every reset, not only when
+    something looks unusual, because the dangerous case looks entirely usual
+    from here: localhost, green health, and production underneath.
+    """
+    reason = looks_like_production(
+        api_base_url=settings.api_base_url,
+        database_endpoint=database_endpoint,
+        production_endpoint_id=settings.production_endpoint_id,
+        production_api_hosts=settings.production_api_host_list,
+    )
+    if reason is None:
+        return
+
+    if settings.allow_production_reset:
+        logger.warning(
+            "Resetting a production-looking target because "
+            "ALLOW_PRODUCTION_RESET is set: %s", reason
+        )
+        return
+
+    raise RuntimeError(refusal_message(reason, "ALLOW_PRODUCTION_RESET"))
 
 
 def _reset_database(settings: TestSettings) -> dict:
@@ -183,11 +214,14 @@ def database_state(settings: TestSettings, tmp_path_factory, worker_id: str) -> 
     all observe "no marker" at once and all reset, with three of them wiping
     rows the other's tests are mid-way through reading.
     """
-    _check_api_is_up(settings)
+    database_endpoint = _check_api_is_up(settings)
     _check_test_key(settings)
 
     if not settings.reset_database:
         return
+
+    # Before anything is wiped, and before any worker takes the lock.
+    _refuse_if_production(settings, database_endpoint)
 
     if worker_id == "master":
         _reset_database(settings)

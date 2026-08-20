@@ -65,6 +65,19 @@ class TestSettings(BaseSettings):
     # wiped — a shared demo, or someone else's session.
     reset_database: bool = True
 
+    # --- protecting the live demo ---
+    # A reset is total, so the suite has to be able to recognise the one target
+    # it must never perform one against. See utils/safety.py and DEF-005.
+    production_endpoint_id: str = "ep-round-snow-axyc70lw"
+    production_api_hosts: str = "engage-api-b6yg.onrender.com"
+    # The deliberate override. Named rather than a bare boolean so that reading
+    # a CI file makes it obvious what was switched off.
+    allow_production_reset: bool = False
+
+    @property
+    def production_api_host_list(self) -> tuple[str, ...]:
+        return tuple(h.strip() for h in self.production_api_hosts.split(",") if h.strip())
+
     # --- provenance ---
     # Which commit of the application was tested. CI knows this exactly: it
     # checks engage-app out and can pass the SHA in. Locally it is discovered

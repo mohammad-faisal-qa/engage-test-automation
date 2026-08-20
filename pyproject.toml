@@ -29,6 +29,9 @@ markers = [
   # against the live demo, so a test wearing this marker is promising it
   # creates and mutates nothing. Tests get tagged when that job is built.
   "readonly: safe against a shared or deployed environment",
+  # Pure functions with no application involved — the guards that protect the
+  # suite itself. They need no server, so they run anywhere.
+  "unit: no application required",
   "slow: over 10 seconds",
 ]
 

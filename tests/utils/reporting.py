@@ -45,7 +45,8 @@ MODULE_AREAS: dict[str, str] = {
     "test_campaign_states": "Campaigns",
     "test_delivery_idempotency": "Delivery",
     "test_analytics_invariants": "Analytics",
-    # API — platform-wide
+    # Platform-wide
+    "test_reset_guard": "Platform",
     "test_seed_data": "Platform",
     "test_contract_openapi": "Platform",
     # Browser
@@ -113,6 +114,8 @@ MODULE_SEVERITY: dict[str, str] = {
     "test_analytics_data": "normal",
     "test_seed_data": "normal",
     "test_contract_openapi": "normal",
+    # The guard exists to prevent an irreversible loss of the live demo.
+    "test_reset_guard": "blocker",
     "test_onsite_frequency_cap": "normal",
     "test_survey_submission": "normal",
 }
@@ -135,10 +138,13 @@ DEFECTS: dict[str, str] = {
     "DEF-002": f"{DEFECTS_BASE}/DEF-002-viewer-reaches-edit-route.md",
     "DEF-003": f"{DEFECTS_BASE}/DEF-003-sticky-wait-always-succeeds.md",
     "DEF-004": f"{DEFECTS_BASE}/DEF-004-ci-only-connection-reset.md",
+    "DEF-005": f"{DEFECTS_BASE}/DEF-005-unverified-database-endpoints.md",
 }
 
 # A failure in one of these is one click from the report that explains it.
 MODULE_DEFECTS: dict[str, tuple[str, ...]] = {
+    # The guard was written because of DEF-005; a failure here is that defect.
+    "test_reset_guard": ("DEF-005",),
     # Their cleanup provokes DEF-001, and DEF-004 was that defect seen from
     # the other end — these are the tests it errored.
     "test_delivery_idempotency": ("DEF-001", "DEF-004"),
@@ -155,6 +161,7 @@ TEST_DEFECTS: dict[str, tuple[str, ...]] = {
 # --- derivation ------------------------------------------------------------
 
 _LAYER_BY_MARKER = (
+    ("unit", "Unit"),
     ("contract", "Contract"),
     ("e2e", "Journey"),
     ("ui", "Browser"),
