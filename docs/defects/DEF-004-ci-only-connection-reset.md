@@ -5,7 +5,7 @@
 | **Component** | engage-test-automation · `tests/clients/base.py` |
 | **Severity** | Medium — intermittent CI failures on correct code |
 | **Priority** | High — a gate that fails at random stops being read |
-| **Status** | **Root cause found — it is [DEF-001](DEF-001-delete-contact-with-deliveries-returns-500.md).** Framework side fixed; application defect still open |
+| **Status** | **Closed.** Root cause was [DEF-001](DEF-001-delete-contact-with-deliveries-returns-500.md), fixed in engage-app `438e9ca`. Framework mitigation retained. |
 | **Found** | 2026-08-18, Phase 6, when the gate went red on a suite that had passed locally three times |
 
 ## Summary
@@ -103,7 +103,9 @@ Framework side: the cohort cleanup now swallows transport failures as well as ba
 warning. That is not defensive programming for its own sake — cleanup is best-effort by definition,
 and an exception raised in teardown must never fail a test that passed.
 
-Application side: DEF-001 remains open. Fixing it removes the cause rather than the symptom.
+Application side: DEF-001 is now fixed in engage-app `438e9ca` — the unhandled exception that reset
+the connection no longer occurs, so this failure mode has no source. The framework mitigation stays
+anyway: cleanup should never be able to fail a run, whatever the application does.
 
 ## Why testing missed it
 

@@ -5,7 +5,7 @@
 | **Component** | engage-app · `api/app/routers/contacts.py` |
 | **Severity** | **High** — raised from Medium: the same unhandled error also destabilises CI, see [DEF-004](DEF-004-ci-only-connection-reset.md) |
 | **Priority** | **High** — three CI runs were lost to it before the cause was identified |
-| **Status** | Open — reported, not fixed (the application is a separate repository) |
+| **Status** | **Fixed** in engage-app `438e9ca` (2026-08-20). Regression test `test_a_contact_with_deliveries_cannot_be_deleted`, seen red before the fix and green after. |
 | **Found** | 2026-08-18, during Phase 6 CI triage |
 | **Found by** | Postgres constraint errors in the CI service-container log, then reproduced directly |
 
@@ -96,9 +96,9 @@ It surfaced only because CI prints the Postgres container log, where the constra
 too repetitive to ignore — and even then it was filed as cosmetic. Its real cost was only understood
 once the transport errors in DEF-004 were made to name the request that caused them.
 
-## Suggested fix
+## Fix — applied
 
-Mirror the existing pattern:
+Mirrored the existing pattern:
 
 ```python
 try:
@@ -111,8 +111,37 @@ except IntegrityError:
     )
 ```
 
-## Test to add once fixed
+## Regression test — added
 
-`test_a_contact_with_deliveries_cannot_be_deleted` — send a campaign to a private cohort, attempt to
-delete a contact in it, assert `409` and that the contact still exists. Currently absent by
-omission, not by decision.
+`test_a_contact_with_deliveries_cannot_be_deleted` in `api_tests/test_contacts_crud.py`. Sends a
+campaign to a private cohort, attempts to delete a contact that now has a delivery, and asserts
+`409` **and** that the contact is still there — a refusal that had already committed the delete
+would look identical from the status code alone.
+
+It was watched failing first:
+
+```
+AssertionError: deleting a contact with deliveries returned 500; a referenced row
+must be refused as a conflict, not raised as a server error
+assert 500 == 409
+```
+
+and passing after the fix. A regression test never seen red is not a regression test — it may be
+asserting something that was always true.
+
+Verified directly against the endpoint afterwards:
+
+```
+DELETE /api/contacts/1 (has seeded deliveries) -> 409
+body: {"detail":"This contact has deliveries and cannot be removed"}
+contact still present: True
+```
+
+## What this closes elsewhere
+
+This was also the root cause of [DEF-004](DEF-004-ci-only-connection-reset.md). The unhandled
+exception did not reliably produce a 500 under CI's request density — the connection was reset
+mid-response, and because the call happened in fixture teardown it errored tests that had already
+passed. With the exception handled, that failure mode has no source. The framework-side mitigation
+in the cohort fixture stays: cleanup should never be able to fail a run regardless of what the
+application does.

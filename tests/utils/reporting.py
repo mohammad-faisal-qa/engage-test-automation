@@ -151,6 +151,7 @@ MODULE_DEFECTS: dict[str, tuple[str, ...]] = {
 }
 
 TEST_DEFECTS: dict[str, tuple[str, ...]] = {
+    "test_a_contact_with_deliveries_cannot_be_deleted": ("DEF-001",),
     "test_a_viewer_reaching_the_edit_route_directly_cannot_save": ("DEF-002",),
     # The three that caught, or would have caught, the sticky wait.
     "test_paging_controls_move_and_stop_at_the_ends": ("DEF-003",),

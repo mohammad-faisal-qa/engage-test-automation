@@ -131,3 +131,37 @@ def test_a_country_that_is_not_two_letters_is_rejected(api, country):
         f"country={country!r} was accepted; the field is meant to be a "
         f"two-letter code"
     )
+
+
+@allure.feature("Contacts")
+@allure.story("A contact that has deliveries cannot be deleted")
+def test_a_contact_with_deliveries_cannot_be_deleted(api, sent_campaign):
+    """The regression test for DEF-001.
+
+    A contact referenced by a delivery must not be removable, and the refusal
+    has to be a conflict rather than a server error. The distinction is not
+    cosmetic: 500 with a body of "Internal Server Error" tells the caller
+    nothing about why, is indistinguishable from a genuine fault in monitoring,
+    and — under CI's request density — did not reliably produce a response at
+    all, which is how it became DEF-004.
+
+    The second assertion is the one with teeth. A refusal that had already
+    committed the delete would look identical from the status code alone.
+    """
+    campaign, deliveries = sent_campaign
+    contact_id = deliveries[0].contact_id
+    contacts = api.contacts()
+
+    with allure.step(f"Attempt to delete contact {contact_id}, which has a delivery"):
+        response = contacts.delete_one_response(contact_id)
+
+    assert response.status_code == 409, (
+        f"deleting a contact with deliveries returned {response.status_code}; "
+        f"a referenced row must be refused as a conflict, not raised as a "
+        f"server error"
+    )
+
+    with allure.step("The contact is still there"):
+        assert contacts.get_one_response(contact_id).status_code == 200, (
+            "the delete was refused but the contact is gone anyway"
+        )

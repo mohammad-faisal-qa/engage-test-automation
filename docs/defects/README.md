@@ -10,10 +10,10 @@ not.
 
 | ID | Title | Severity | Priority | Status |
 |---|---|---|---|---|
-| [DEF-001](DEF-001-delete-contact-with-deliveries-returns-500.md) | Deleting a contact that has deliveries returns 500 | High | High | Open |
+| [DEF-001](DEF-001-delete-contact-with-deliveries-returns-500.md) | Deleting a contact that has deliveries returns 500 | High | High | **Fixed** — engage-app `438e9ca` |
 | [DEF-002](DEF-002-viewer-reaches-edit-route.md) | A viewer can open the segment editor by URL | Low | Low | Open |
 | [DEF-003](DEF-003-sticky-wait-always-succeeds.md) | A wait that always succeeded, in our own framework | High | High | Fixed |
-| [DEF-004](DEF-004-ci-only-connection-reset.md) | Connection reset in CI only, and a wrong first diagnosis | Medium | High | Cause found — same as DEF-001 |
+| [DEF-004](DEF-004-ci-only-connection-reset.md) | Connection reset in CI only, and a wrong first diagnosis | Medium | High | **Closed** with DEF-001 |
 | [DEF-005](DEF-005-unverified-database-endpoints.md) | Local and live configured against endpoints never verified as distinct | High | High | Root cause established; **guarded** |
 
 **DEF-005 is worth reading for the ambiguity rather than the outage.** One error message —
