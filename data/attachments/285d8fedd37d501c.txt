@@ -1,0 +1,6 @@
+HTTP 200
+
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJhZG1pbkBhY21lLmV4YW1wbGUuY29tIiwidGVuYW50X2lkIjoiYWNtZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc4NzIyMDM0NSwiZXhwIjoxNzg3MjQ5MTQ1fQ.ctYHi3cPwADu8wMbO1J2Y_S25N3B8ohmEo8QegVOWi0",
+  "token_type": "bearer"
+}

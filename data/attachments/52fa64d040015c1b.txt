@@ -1,0 +1,14 @@
+HTTP 201
+
+{
+  "created_at": "2026-08-20T10:05:37.503918Z",
+  "id": 17,
+  "kind": "rule",
+  "name": "Segment 92a78715",
+  "rules": {
+    "conditions": [],
+    "contact_ids": [],
+    "match": "all"
+  },
+  "tenant_id": "acme"
+}

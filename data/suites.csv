@@ -1,294 +1,4 @@
 "DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"Asserted as an exact set, in both directions.
-
-A removed value breaks code that produces it. An *added* value breaks code
-that consumes it — a campaign arriving in a state this suite has never heard
-of would fall through every branch that handles the four it knows. Neither
-direction violates the schema, which is precisely why the check belongs to
-the consumer.
-","1","Enum fields are constrained to the expected values [SegmentOut, kind]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"Empty is a state to design for, not an error. The distinction matters:
-a blank table looks identical to a broken one.
-","178","A search with no matches shows the empty state [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
-"The accessible view of the same data.
-
-Two renderings of one payload are two chances to disagree, and the table is
-the one someone using a screen reader gets — so it is the one that must not
-quietly drift.
-","660","The table view matches the intercepted payload [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_analytics_data","",""
-"500 from the list endpoint.
-
-The grid must say something. The failure mode this guards against is the
-table rendering empty — indistinguishable, to a reader, from a tenant that
-genuinely has no contacts.
-","264","A server error is shown in the grid [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
-"","312","Filters narrow the grid [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
-"The assertion that survives a rename.
-
-A renamed field changes the response and the document together, so
-conformance still passes. What does not pass is this: the consumer's own list
-of what it needs, checked against what the provider now offers.
-
-Required, not merely present: a field that became optional is a field that
-can arrive missing, and every caller reading it would then break at runtime
-rather than here.
-","0","The fields this suite reads are declared and required [CampaignOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"Scheduling is reversible, and it should be: noticing a mistake before
-anything is sent is exactly when a campaign ought to be editable again.
-","16","A scheduled campaign can go back to draft","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
-"The names encode two claims — the tenant and the kind — so check both.
-
-`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
-the Phase 2 evaluator tests would be exercising rule evaluation while
-believing they were covering static membership.
-","4","Seeded segment matches its constant [SEGMENT_VIP_STATIC, 3]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"The token is only useful if the identity behind it is right.
-
-Asserting that /auth/me echoes the tenant and role is the assertion that
-matters: the application decides every authorisation question from those
-two claims, so if they were wrong here, every RBAC and isolation test below
-would be testing the wrong user.
-","674","Login returns a token that identifies the user","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/tenant_isolation.feature: One organisation cannot reach another's <record>","10","One organisation cannot reach anothers record [{'record': 'campaign'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
-"The control for every refusal in this file.
-
-Without it, an endpoint broken for everyone would pass all the negative
-tests — 403 for a viewer looks identical whether the rule is working or the
-route is simply dead.
-","356","An editor can create a contact","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
-"The names encode two claims — the tenant and the kind — so check both.
-
-`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
-the Phase 2 evaluator tests would be exercising rule evaluation while
-believing they were covering static membership.
-","22","Seeded segment matches its constant [SEGMENT_GLOBEX_FREE, 4]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"A token the server did not sign must not be accepted.
-
-The payload here is deliberately well-formed nonsense: the shape of a JWT
-without a valid signature. Accepting it would mean the signature is not
-being verified, which no status-code check on a *valid* token would ever
-reveal.
-","6","A forged token is refused","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
-"401, and no token in the body.
-
-The second assertion is the one worth having. A endpoint that returns 401
-while still including a usable token in the body would pass a status-only
-check and be a complete authentication bypass.
-","467","Login with a wrong password is rejected","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
-"Conformance: what the application *sends* against what it *promises*.
-
-This is the half a schema can check about itself, and it is not nothing —
-it catches a handler that bypasses its response_model or hand-builds a
-JSONResponse, where the document and the wire genuinely can disagree.
-","0","Live responses validate against their declared schema [DeliveryOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"Conformance: what the application *sends* against what it *promises*.
-
-This is the half a schema can check about itself, and it is not nothing —
-it catches a handler that bypasses its response_model or hand-builds a
-JSONResponse, where the document and the wire genuinely can disagree.
-","0","Live responses validate against their declared schema [CampaignOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"","4","A receipt for an unknown delivery is not found","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
-"422 rather than a silent correction. Quietly treating page=0 as page=1
-hides a caller's off-by-one instead of surfacing it.
-","15","Invalid paging parameters are rejected [{'page': 0}, page numbering starts at 1]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"409, not 500. A unique-constraint violation reaching the client as a
-server error would be the application failing to own a rule it declared.
-","13","A duplicate email is refused","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
-"","0","The contract still declares the models this suite reads [DeliveryOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"The subtle one.
-
-A static segment is just a list of ids, and nothing stops an acme user
-writing globex's contact id into it. The protection cannot live in the
-segment — it has to live in how membership is resolved, which is scoped to
-the caller's tenant. So the segment is allowed to hold the id, and the id
-simply never resolves to a contact.
-","42","A static segment cannot pull in another tenants contact","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
-"Refusing the request is the right call: without a key the endpoint cannot
-recognise a retry, so accepting it would silently give up the guarantee.
-","4","A receipt without an idempotency key is rejected","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
-"`plan` is a column on the contacts table.","26","A rule on a column field selects by that column","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/campaign_lifecycle.feature: A campaign cannot be reported as sent without being sent","57","A campaign cannot be reported as sent without being sent","tests.steps","2026-08-20","passed","2026-08-20","","test_campaign_lifecycle","",""
-"The names encode two claims — the tenant and the kind — so check both.
-
-`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
-the Phase 2 evaluator tests would be exercising rule evaluation while
-believing they were covering static membership.
-","5","Seeded segment matches its constant [SEGMENT_HIGH_VALUE_RULE, 2]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"","0","The contract still declares the models this suite reads [ContactOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"","0","The contract still declares the models this suite reads [SegmentOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/segment_targeting.feature: Customers are selected by <description>","27","Customers are selected by description [{'description': 'a recorded attribute', 'field': 'lifetime_value', 'matching': '9000', 'other': '10'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_segment_targeting","",""
-"One campaign per interesting state, which is what the state-machine tests
-in Phase 2 will select from. A constant pointing at the wrong state would
-make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
-","5","Seeded campaign is in the state its constant names [CAMPAIGN_SENT, 3]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"`%` and `_` are wildcards in SQL LIKE and an apostrophe ends a string
-literal. A search for any of them must return a normal response: an
-unescaped wildcard would silently match everything, and an unescaped quote
-is the shape of an injection.
-","11","Special characters in search are treated as text [%_%]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"The webhook is not JWT-authenticated — it is a provider callback — so the
-shared secret is the only thing standing between a public URL and anyone
-fabricating delivery events on the demo.
-","8","A receipt with the wrong secret is rejected","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
-"Post the identical payload twice under one key, then look at the row.
-
-The second response being 200 proves nothing on its own — an endpoint that
-applied the event twice would also return 200. What proves it is
-`delivered_at` being the same instant afterwards as it was before.
-","39","The same receipt posted twice has exactly one effect","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
-"State in the URL is only worth having if history works with it.","576","The back button returns to the previous grid state [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
-"The overview returns per-campaign stats and tenant totals in one response,
-which is what makes this assertable under parallel execution: both halves
-describe the same instant, so another worker sending a campaign mid-test
-changes both together rather than making them disagree.
-","11","The overview totals agree with its own campaigns","tests.api_tests","2026-08-20","passed","2026-08-20","","test_analytics_invariants","",""
-"The boundary between two permitted-looking actions, which is the one most
-easily got wrong: it is far easier to remember that viewers cannot write than
-that editors cannot destroy.
-","981","An editor is offered editing but not deletion [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_rbac_ui","",""
-"The request is aborted as a timeout, which is what the browser sees when
-a server accepts a connection and then never answers.
-
-The distinction that matters is between ""the API said no"" and ""the API said
-nothing"" — the second is an infrastructure problem, and telling the reader so
-is the difference between a useful message and a misleading one.
-","170","A timed out request reports that the api is unreachable [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
-"`database_endpoint` is None when the app predates that field. The URL
-check has to keep working on its own, or deploying the guard before the app
-would leave a window with no protection at all.
-","0","An older application that cannot report its endpoint still falls back","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
-"","33","The in operator matches any of the listed values","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
-"PATCH means partial. An implementation that rebuilt the row from the body
-would blank every field the caller left out, and the response to *this*
-request would still look correct.
-","27","An update changes only the fields it names","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/onsite_frequency_cap.feature: A customer who has not seen the message yet is eligible","68","A customer who has not seen the message yet is eligible","tests.steps","2026-08-20","passed","2026-08-20","","test_onsite_frequency_cap","",""
-"Two defences, and this test separates them.
-
-The idempotency key catches a provider retrying. But a provider that
-generates a fresh key for a genuinely duplicate event slips past that, so
-the state machine has to be idempotent too: a stage timestamp is written
-once and never overwritten. Here `replayed` is false — the key was new — and
-`applied` must still be false, because nothing was left to change.
-","12","The same event under a new key is not applied twice","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
-"403, and — the part a status-code assertion would miss — no contact.
-
-An endpoint that rejects the response but has already committed the row is
-a real failure mode, and it looks identical to a correct one from the
-status code alone. So the test also asks, as an admin, whether the record
-exists. Searching by the unique email means the answer cannot be confused
-by anything another worker created.
-","355","Viewer cannot create a contact","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
-"","5","A request with no token is refused","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
-"","488","A deleted contact is no longer found","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
-"The check the suite's own models are deliberately unable to make.
-
-Those models tolerate unknown fields on purpose: adding one is backwards
-compatible, and a functional test has no business failing because the
-application grew a column. But *somebody* has to notice, because an
-undeclared field is a field no consumer was told about — and on these models
-it may well be one nobody meant to publish.
-
-Pydantic emits no `additionalProperties: false`, so JSON Schema validation
-will not catch this. It has to be asserted directly.
-","0","Responses carry no undeclared fields [DeliveryOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"`any` cannot use the cohort trick — a cohort condition under `any` would
-widen the segment rather than narrow it. So this one asserts against the
-ids it created instead of against the whole membership.
-","37","Match any is a union not an intersection","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
-"The same credentials through the other door.
-
-The application exposes both a JSON login and the OAuth2 password flow that
-the /docs Authorize button uses. They must agree — if the form endpoint
-drifted, every manual exploration through /docs would be authenticating as
-something the automated tests never exercise.
-","448","The oauth2 form endpoint also issues a token","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/survey_submission.feature: An answer outside the allowed range is refused","32","An answer outside the allowed range is refused","tests.steps","2026-08-20","passed","2026-08-20","","test_survey_submission","",""
-"The assertion that survives a rename.
-
-A renamed field changes the response and the document together, so
-conformance still passes. What does not pass is this: the consumer's own list
-of what it needs, checked against what the provider now offers.
-
-Required, not merely present: a field that became optional is a field that
-can arrive missing, and every caller reading it would then break at runtime
-rather than here.
-","0","The fields this suite reads are declared and required [ContactOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"The field is declared as exactly two characters, so both a shorter and a
-longer value have to fail — a bound checked on one side only is a common
-and invisible mistake.
-","13","A country that is not two letters is rejected []","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
-"One campaign per interesting state, which is what the state-machine tests
-in Phase 2 will select from. A constant pointing at the wrong state would
-make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
-","4","Seeded campaign is in the state its constant names [CAMPAIGN_DRAFT, 1]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"DEF-005 itself.
-
-Everything a reader would check looks fine — the URL is localhost — and the
-database underneath is the live one. Only the endpoint gives it away.
-","0","A local api pointed at production is refused","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
-"These two are a different kind of claim: not seeded rows, but the
-application's declared limits. They are asserted the way a caller would
-discover them — by asking for the boundary and one past it.
-","24","Pagination constants match the api contract","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"The same 404-not-403 rule as contacts, across the other two modules.
-
-Isolation implemented per-endpoint tends to be implemented per-endpoint
-*inconsistently* — one router remembers to scope its query and the next one
-does not. Each case carries its own control read so a blanket 404 cannot
-pass for security.
-","26","Another tenants records read as not found [campaign, /api/campaigns]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
-"","1","The contract still declares the models this suite reads [CampaignOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/survey_submission.feature: A submitted response is counted in the survey's results","61","A submitted response is counted in the surveys results","tests.steps","2026-08-20","passed","2026-08-20","","test_survey_submission","",""
-"The field is declared as exactly two characters, so both a shorter and a
-longer value have to fail — a bound checked on one side only is a common
-and invisible mistake.
-","20","A country that is not two letters is rejected [USA]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/campaign_lifecycle.feature: A campaign with no audience is not sent","43","A campaign with no audience is not sent","tests.steps","2026-08-20","passed","2026-08-20","","test_campaign_lifecycle","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/segment_targeting.feature: Customers are selected by <description>","32","Customers are selected by description [{'description': 'their plan', 'field': 'plan', 'matching': 'enterprise', 'other': 'free'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_segment_targeting","",""
-"The assertion that survives a rename.
-
-A renamed field changes the response and the document together, so
-conformance still passes. What does not pass is this: the consumer's own list
-of what it needs, checked against what the provider now offers.
-
-Required, not merely present: a field that became optional is a field that
-can arrive missing, and every caller reading it would then break at runtime
-rather than here.
-","0","The fields this suite reads are declared and required [DeliveryOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"Case-insensitivity is the point.
-
-Postgres `LIKE` is case-sensitive where SQLite's is not, so a search written
-against SQLite behaves differently the moment it is deployed — searching
-""aisha"" would stop finding ""Aisha"". The application uses ILIKE; this is what
-holds it to that.
-","38","Search matches name and email regardless of case","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"","21","A viewer cannot create a segment","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
-"Every headline number, checked against the response that produced it.","209","The stat tiles match the intercepted payload [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_analytics_data","",""
-"422 rather than a silent correction. Quietly treating page=0 as page=1
-hides a caller's off-by-one instead of surfacing it.
-","13","Invalid paging parameters are rejected [{'page': -1}, a negative page has no meaning]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"Conformance: what the application *sends* against what it *promises*.
-
-This is the half a schema can check about itself, and it is not nothing —
-it catches a handler that bypasses its response_model or hand-builds a
-JSONResponse, where the document and the wire genuinely can disagree.
-","0","Live responses validate against their declared schema [CampaignStats]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"One campaign per interesting state, which is what the state-machine tests
-in Phase 2 will select from. A constant pointing at the wrong state would
-make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
-","4","Seeded campaign is in the state its constant names [CAMPAIGN_GLOBEX_RUNNING, 5]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"Asserted as an exact set, in both directions.
-
-A removed value breaks code that produces it. An *added* value breaks code
-that consumes it — a campaign arriving in a state this suite has never heard
-of would fall through every branch that handles the four it knows. Neither
-direction violates the schema, which is precisely why the check belongs to
-the consumer.
-","0","Enum fields are constrained to the expected values [CampaignOut, status]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"A failure needs its reason kept, because ""why did this not arrive"" is the
-question anyone actually asks, and the status alone cannot answer it.
-","12","A failed receipt records its reason","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
 "`%` and `_` are wildcards in SQL LIKE and an apostrophe ends a string
 literal. A search for any of them must return a normal response: an
 unescaped wildcard would silently match everything, and an unescaped quote
@@ -304,76 +14,101 @@ it may well be one nobody meant to publish.
 
 Pydantic emits no `additionalProperties: false`, so JSON Schema validation
 will not catch this. It has to be asserted directly.
-","0","Responses carry no undeclared fields [CampaignOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"The regression test for DEF-001.
-
-A contact referenced by a delivery must not be removable, and the refusal
-has to be a conflict rather than a server error. The distinction is not
-cosmetic: 500 with a body of ""Internal Server Error"" tells the caller
-nothing about why, is indistinguishable from a genuine fault in monitoring,
-and — under CI's request density — did not reliably produce a response at
-all, which is how it became DEF-004.
-
-The second assertion is the one with teeth. A refusal that had already
-committed the delete would look identical from the status code alone.
-","10","A contact with deliveries cannot be deleted","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+","0","Responses carry no undeclared fields [ContactOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"The case that proves the two lookups compose rather than merely coexist.","32","One rule set can mix a column and a jsonb attribute","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
 "`%` and `_` are wildcards in SQL LIKE and an apostrophe ends a string
 literal. A search for any of them must return a normal response: an
 unescaped wildcard would silently match everything, and an unescaped quote
 is the shape of an injection.
-","10","Special characters in search are treated as text [100%]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+","13","Special characters in search are treated as text [']","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/survey_submission.feature: An answer outside the allowed range is refused","32","An answer outside the allowed range is refused","tests.steps","2026-08-20","passed","2026-08-20","","test_survey_submission","",""
+"Neon exposes one database under two hostnames. Matching only the exact
+string would let the pooled form through, which is the form every connection
+string in this project actually uses.
+","0","The pooled and direct hosts are both recognised [ep-round-snow-axyc70lw]","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
+"Running off the end is ordinary paging behaviour, not a failure — a UI
+walking pages should get an empty list and stop, not a 500.
+","17","A page beyond the last one is empty","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"Two numbers for the same thing can disagree, and a rate is the one people
+quote. The denominators follow marketing convention — delivery rate is of
+sent, open rate is of delivered — so this checks the arithmetic against the
+counts in the same response rather than against anything remembered.
+","42","Rates are consistent with the counts they summarise","tests.api_tests","2026-08-20","passed","2026-08-20","","test_analytics_invariants","",""
+"200 OK, with a body that is not the shape the client expects.
+
+This is the failure a contract test predicts and a functional test never
+reaches: the status is fine, so nothing in the request path complains, and
+the client walks into a field that is not there. The interface has to end up
+somewhere a reader can understand rather than half-rendered.
+","190","A malformed payload is reported rather than rendered [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/onsite_frequency_cap.feature: A customer who has not seen the message yet is eligible","80","A customer who has not seen the message yet is eligible","tests.steps","2026-08-20","passed","2026-08-20","","test_onsite_frequency_cap","",""
+"Every headline number, checked against the response that produced it.","194","The stat tiles match the intercepted payload [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_analytics_data","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/onsite_frequency_cap.feature: A paused notification is shown to nobody","28","A paused notification is shown to nobody","tests.steps","2026-08-20","passed","2026-08-20","","test_onsite_frequency_cap","",""
+"","187","Filters narrow the grid [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
+"","209","Consecutive pages show different records [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
+"Asserted as a property of what comes back, never as a count: another
+worker can add a matching contact between the two requests, and a test that
+counted would fail on a system doing exactly the right thing.
+","483","Filters return only matching contacts","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"422 rather than a silent correction. Quietly treating page=0 as page=1
+hides a caller's off-by-one instead of surfacing it.
+","9","Invalid paging parameters are rejected [{'page': -1}, a negative page has no meaning]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"Case-insensitivity is the point.
+
+Postgres `LIKE` is case-sensitive where SQLite's is not, so a search written
+against SQLite behaves differently the moment it is deployed — searching
+""aisha"" would stop finding ""Aisha"". The application uses ILIKE; this is what
+holds it to that.
+","38","Search matches name and email regardless of case","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"","0","The contract still declares the models this suite reads [CampaignStats]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"Scheduling is reversible, and it should be: noticing a mistake before
+anything is sent is exactly when a campaign ought to be editable again.
+","34","A scheduled campaign can go back to draft","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
+"DEF-005 itself.
+
+Everything a reader would check looks fine — the URL is localhost — and the
+database underneath is the live one. Only the endpoint gives it away.
+","0","A local api pointed at production is refused","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
+"","5","A receipt for an unknown delivery is not found","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
+"401, and no token in the body.
+
+The second assertion is the one worth having. A endpoint that returns 401
+while still including a usable token in the body would pass a status-only
+check and be a complete authentication bypass.
+","476","Login with a wrong password is rejected","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
+"409, not 500. A unique-constraint violation reaching the client as a
+server error would be the application failing to own a rule it declared.
+","15","A duplicate email is refused","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+"The search box is reached by its label, the way a person finds it — and
+the term arrives from the URL, proving the grid reads its state from there
+rather than only from the control.
+","131","A deep link applies a search term [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
+"","3","A request with no token is refused","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
+"Conformance: what the application *sends* against what it *promises*.
+
+This is the half a schema can check about itself, and it is not nothing —
+it catches a handler that bypasses its response_model or hand-builds a
+JSONResponse, where the document and the wire genuinely can disagree.
+","0","Live responses validate against their declared schema [CampaignStats]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"Both halves in one test, deliberately.
+
+Asserting only that a viewer sees no buttons would pass just as well against
+a grid that failed to render at all. The admin context is the control that
+makes the viewer's absence mean something.
+","1327","A viewer sees no write controls [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_rbac_ui","",""
 "`%` and `_` are wildcards in SQL LIKE and an apostrophe ends a string
 literal. A search for any of them must return a normal response: an
 unescaped wildcard would silently match everything, and an unescaped quote
 is the shape of an injection.
-","19","Special characters in search are treated as text [']","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"Empty means empty, not everything.
-
-The opposite choice is defensible in the abstract and catastrophic in
-practice: a half-built segment saved with no conditions would resolve to
-every contact in the tenant, and the next campaign pointed at it would send
-to all of them.
-","19","A rule set with no conditions matches nobody","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
-"Read each id with a token from the tenant that is supposed to own it.
-
-This is the pair the tenant-isolation test is built on. If the ranges in the
-seed ever move, that test starts asserting something it does not mean, and
-this one says so plainly instead.
-","352","Seeded contact belongs to the tenant its constant names [GLOBEX_CONTACT_ID, 41]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"Deep-linking past the login screen must not work.
-
-Every route in the application is reachable by URL, which is exactly why the
-guard has to live in the router rather than in the links: hiding a nav item
-does nothing for someone who types the address.
-","152","An unauthenticated visitor is redirected to login [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
-"The rates are the numbers a person would quote, so they are the ones most
-worth checking against their source. Read as text, never measured.
-","274","Campaign rates match the intercepted payload [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_analytics_data","",""
-"The assertion that survives a rename.
-
-A renamed field changes the response and the document together, so
-conformance still passes. What does not pass is this: the consumer's own list
-of what it needs, checked against what the provider now offers.
-
-Required, not merely present: a field that became optional is a field that
-can arrive missing, and every caller reading it would then break at runtime
-rather than here.
-","0","The fields this suite reads are declared and required [CampaignStats]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"Asserted as an exact set, in both directions.
-
-A removed value breaks code that produces it. An *added* value breaks code
-that consumes it — a campaign arriving in a state this suite has never heard
-of would fall through every branch that handles the four it knows. Neither
-direction violates the schema, which is precisely why the check belongs to
-the consumer.
-","0","Enum fields are constrained to the expected values [DeliveryOut, status]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"`opened` first, then the `delivered` that logically preceded it.
-
-The naive implementation assigns status from whichever receipt arrived last,
-which would leave this delivery reading `delivered` after it had already been
-opened — and the analytics funnel would then report more opens than
-deliveries.
-","30","Receipts arriving out of order do not regress the status","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
+","23","Special characters in search are treated as text [_]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"Worth its own test because Postgres `LIKE` is case-sensitive: an
+implementation that reached for SQL rather than evaluating in Python would
+pass for exact case and fail here.
+","24","The contains operator ignores case","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
+"`database_endpoint` is None when the app predates that field. The URL
+check has to keep working on its own, or deploying the guard before the app
+would leave a window with no protection at all.
+","0","An older application that cannot report its endpoint still falls back","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
 "The check the suite's own models are deliberately unable to make.
 
 Those models tolerate unknown fields on purpose: adding one is backwards
@@ -385,124 +120,44 @@ it may well be one nobody meant to publish.
 Pydantic emits no `additionalProperties: false`, so JSON Schema validation
 will not catch this. It has to be asserted directly.
 ","0","Responses carry no undeclared fields [SegmentOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/campaign_lifecycle.feature: A campaign reaches everyone in its segment","2148","A campaign reaches everyone in its segment","tests.steps","2026-08-20","passed","2026-08-20","","test_campaign_lifecycle","",""
-"","47","A campaign moves through running to sent","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
-"The message is part of the contract. ""422 Unprocessable Entity"" tells the
-caller nothing about which move was refused or what the campaign's state
-actually is, and that is the first thing anyone debugging needs.
-","13","A refused transition explains itself","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
-"","585","Paging controls move and stop at the ends [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
-"The search box is reached by its label, the way a person finds it — and
-the term arrives from the URL, proving the grid reads its state from there
-rather than only from the control.
-","148","A deep link applies a search term [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
-"404, specifically not 403 — and that distinction is the whole test.
-
-Both statuses deny the request, so both look secure. But 403 means ""this
-exists and you may not have it"", which confirms the id is real. Anyone can
-then walk the id space and learn exactly how many customers the other
-tenant has, and which ids to target elsewhere. 404 says only ""no such
-contact for you"", which leaks nothing.
-
-The control assertion matters as much: the same call against the caller's
-*own* contact must succeed. Without it, a broken endpoint returning 404 for
-everything would pass this test while being entirely non-functional.
-","356","A contact from another tenant reads as not found","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
-"","182","Consecutive pages show different records [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
-"Asserted as an exact set, in both directions.
-
-A removed value breaks code that produces it. An *added* value breaks code
-that consumes it — a campaign arriving in a state this suite has never heard
-of would fall through every branch that handles the four it knows. Neither
-direction violates the schema, which is precisely why the check belongs to
-the consumer.
-","0","Enum fields are constrained to the expected values [CampaignOut, channel]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"The check the suite's own models are deliberately unable to make.
-
-Those models tolerate unknown fields on purpose: adding one is backwards
-compatible, and a functional test has no business failing because the
-application grew a column. But *somebody* has to notice, because an
-undeclared field is a field no consumer was told about — and on these models
-it may well be one nobody meant to publish.
-
-Pydantic emits no `additionalProperties: false`, so JSON Schema validation
-will not catch this. It has to be asserted directly.
-","0","Responses carry no undeclared fields [CampaignStats]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"The failure has to be visible *and* contained.
-
-Two things go wrong in real login screens: the error is swallowed and the
-form just sits there, or the error shows while the user is signed in anyway.
-So this asserts the message appears, and that the browser stayed on the login
-route with no session established.
-","1315","An invalid login shows an error [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
-"Running off the end is ordinary paging behaviour, not a failure — a UI
-walking pages should get an empty list and stop, not a 500.
-","15","A page beyond the last one is empty","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"Arriving at the grid is not enough on its own.
-
-The redirect proves routing happened; the header proves the application knows
-*who* arrived. A session restored with a broken token would still redirect,
-and would then show an empty header — which is why both are asserted.
-","985","A valid login signs the user in [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
-"The bug this catches is a real one and reads as correct until you try it:
-compared as strings, ""9"" > ""100"", because ""9"" sorts after ""1"". A contact
-worth 9 would then match `gt 50` and one worth 100 would not.
-","26","Gt compares numerically rather than as text","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
-"Analytics has no error handling of its own — it lets the failure reach the
-router, which renders a message rather than leaving an empty outlet.
-
-That is a legitimate design (one handler, one place to change) and it is
-worth a test precisely because it depends on something outside the view: if
-the router's catch were ever removed, this screen would silently go blank.
-","141","A failing analytics request shows an error page [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
-"The round trip, including the JSON attributes — the field most likely to
-be quietly dropped, since it is the only one that is not a plain column.
-","171","A created contact reads back with the values it was given","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
-"Page size 10 rather than the default 20, so there are enough pages for
-""page 3"" to be a real page for acme's forty seeded contacts.","190","A deep link opens the grid at a given page [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/survey_submission.feature: A closed survey collects nothing","30","A closed survey collects nothing","tests.steps","2026-08-20","passed","2026-08-20","","test_survey_submission","",""
-"A refusal nobody can act on gets worked around rather than read.","1","The refusal says what it found and how to proceed","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
-"One campaign per interesting state, which is what the state-machine tests
-in Phase 2 will select from. A constant pointing at the wrong state would
-make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
-","4","Seeded campaign is in the state its constant names [CAMPAIGN_GLOBEX_DRAFT, 4]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"Worth its own test because Postgres `LIKE` is case-sensitive: an
-implementation that reached for SQL rather than evaluating in Python would
-pass for exact case and fail here.
-","34","The contains operator ignores case","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
-"Neon exposes one database under two hostnames. Matching only the exact
-string would let the pooled form through, which is the form every connection
-string in this project actually uses.
-","0","The pooled and direct hosts are both recognised [ep-round-snow-axyc70lw-pooler]","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
-"Asserted as a property of what comes back, never as a count: another
-worker can add a matching contact between the two requests, and a test that
-counted would fail on a system doing exactly the right thing.
-","472","Filters return only matching contacts","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"The field is declared as exactly two characters, so both a shorter and a
-longer value have to fail — a bound checked on one side only is a common
-and invisible mistake.
-","10","A country that is not two letters is rejected [U]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/tenant_isolation.feature: One organisation cannot reach another's <record>","353","One organisation cannot reach anothers record [{'record': 'customer'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/onsite_frequency_cap.feature: A customer stops being eligible after <cap> showings","49","A customer stops being eligible after cap showings [{'cap': '3'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_onsite_frequency_cap","",""
-"Read each id with a token from the tenant that is supposed to own it.
-
-This is the pair the tenant-isolation test is built on. If the ranges in the
-seed ever move, that test starts asserting something it does not mean, and
-this one says so plainly instead.
-","4","Seeded contact belongs to the tenant its constant names [ACME_CONTACT_ID, 1]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"One campaign per interesting state, which is what the state-machine tests
-in Phase 2 will select from. A constant pointing at the wrong state would
-make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
-","4","Seeded campaign is in the state its constant names [CAMPAIGN_SCHEDULED, 2]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
 "Conformance: what the application *sends* against what it *promises*.
 
 This is the half a schema can check about itself, and it is not nothing —
 it catches a handler that bypasses its response_model or hand-builds a
 JSONResponse, where the document and the wire genuinely can disagree.
 ","0","Live responses validate against their declared schema [ContactOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"","1","The deployed api is refused","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
-"The common case must stay silent, or the guard becomes noise people mute.","0","An ordinary local run is allowed","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
-"Drive a campaign through the funnel and check the shape at each step.","83","The funnel never widens as it deepens","tests.api_tests","2026-08-20","passed","2026-08-20","","test_analytics_invariants","",""
+"Analytics has no error handling of its own — it lets the failure reach the
+router, which renders a message rather than leaving an empty outlet.
+
+That is a legitimate design (one handler, one place to change) and it is
+worth a test precisely because it depends on something outside the view: if
+the router's catch were ever removed, this screen would silently go blank.
+","231","A failing analytics request shows an error page [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
+"Deep-linking past the login screen must not work.
+
+Every route in the application is reachable by URL, which is exactly why the
+guard has to live in the router rather than in the links: hiding a nav item
+does nothing for someone who types the address.
+","247","An unauthenticated visitor is redirected to login [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
+"A refusal nobody can act on gets worked around rather than read.","0","The refusal says what it found and how to proceed","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
+"Validation, not storage: nothing should reach the database to be found
+later by whoever wonders why the mailing list has ""not-an-email"" in it.
+","24","A malformed email is rejected","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/tenant_isolation.feature: One organisation cannot reach another's <record>","10","One organisation cannot reach anothers record [{'record': 'campaign'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","5","Seeded campaign is in the state its constant names [CAMPAIGN_GLOBEX_DRAFT, 4]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"","0","The contract still declares the models this suite reads [ContactOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"`%` and `_` are wildcards in SQL LIKE and an apostrophe ends a string
+literal. A search for any of them must return a normal response: an
+unescaped wildcard would silently match everything, and an unescaped quote
+is the shape of an injection.
+","16","Special characters in search are treated as text [100%]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"The webhook is not JWT-authenticated — it is a provider callback — so the
+shared secret is the only thing standing between a public URL and anyone
+fabricating delivery events on the demo.
+","8","A receipt with the wrong secret is rejected","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
 "Every assertion here is deliberately relative, never absolute.
 
 `total == 40` would be the obvious thing to write, and it passes — right up
@@ -515,40 +170,29 @@ So: the envelope must echo what was asked for, a page must not exceed the
 size requested, page 2 must contain different records from page 1, and the
 total must be consistent with what was returned. All of those stay true no
 matter what anyone else is doing to the database at the same time.
-","46","Contacts pagination returns a correct envelope","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+","29","Contacts pagination returns a correct envelope","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"Read each id with a token from the tenant that is supposed to own it.
+
+This is the pair the tenant-isolation test is built on. If the ranges in the
+seed ever move, that test starts asserting something it does not mean, and
+this one says so plainly instead.
+","317","Seeded contact belongs to the tenant its constant names [GLOBEX_CONTACT_ID, 41]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
 "A write that would create a cross-tenant reference, refused at the point
 of creation rather than discovered later when the campaign resolves to an
 audience it should never have seen.
-","6","A campaign cannot target another tenants segment","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
-"The same 404-not-403 rule as contacts, across the other two modules.
-
-Isolation implemented per-endpoint tends to be implemented per-endpoint
-*inconsistently* — one router remembers to scope its query and the next one
-does not. Each case carries its own control read so a blanket 404 cannot
-pass for security.
-","14","Another tenants records read as not found [segment, /api/segments]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
-"The case the whole design exists for.
-
-A delivery is opened before its `delivered` receipt turns up. If the counts
-were taken from the current status string, this campaign would report one
-open and zero deliveries — a funnel that widens as it deepens, which is
-nonsense a dashboard would render without complaint.
-","33","The invariant holds when receipts arrive out of order","tests.api_tests","2026-08-20","passed","2026-08-20","","test_analytics_invariants","",""
+","4","A campaign cannot target another tenants segment","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
+"The message is part of the contract. ""422 Unprocessable Entity"" tells the
+caller nothing about which move was refused or what the campaign's state
+actually is, and that is the first thing anyone debugging needs.
+","5","A refused transition explains itself","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
+"The rates are the numbers a person would quote, so they are the ones most
+worth checking against their source. Read as text, never measured.
+","271","Campaign rates match the intercepted payload [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_analytics_data","",""
 "`%` and `_` are wildcards in SQL LIKE and an apostrophe ends a string
 literal. A search for any of them must return a normal response: an
 unescaped wildcard would silently match everything, and an unescaped quote
 is the shape of an injection.
-","17","Special characters in search are treated as text [_]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/onsite_frequency_cap.feature: A paused notification is shown to nobody","27","A paused notification is shown to nobody","tests.steps","2026-08-20","passed","2026-08-20","","test_onsite_frequency_cap","",""
-"The names encode two claims — the tenant and the kind — so check both.
-
-`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
-the Phase 2 evaluator tests would be exercising rule evaluation while
-believing they were covering static membership.
-","22","Seeded segment matches its constant [SEGMENT_ENTERPRISE_RULE, 1]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
-"The most consequential refusal in the application: sending is the one
-action with an effect outside the system.
-","51","A viewer cannot send a campaign","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
+","13","Special characters in search are treated as text [%_%]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
 "The check the suite's own models are deliberately unable to make.
 
 Those models tolerate unknown fields on purpose: adding one is backwards
@@ -559,12 +203,76 @@ it may well be one nobody meant to publish.
 
 Pydantic emits no `additionalProperties: false`, so JSON Schema validation
 will not catch this. It has to be asserted directly.
-","0","Responses carry no undeclared fields [ContactOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+","0","Responses carry no undeclared fields [DeliveryOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"The case the whole design exists for.
+
+A delivery is opened before its `delivered` receipt turns up. If the counts
+were taken from the current status string, this campaign would report one
+open and zero deliveries — a funnel that widens as it deepens, which is
+nonsense a dashboard would render without complaint.
+","50","The invariant holds when receipts arrive out of order","tests.api_tests","2026-08-20","passed","2026-08-20","","test_analytics_invariants","",""
+"The most consequential refusal in the application: sending is the one
+action with an effect outside the system.
+","50","A viewer cannot send a campaign","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
+"The names encode two claims — the tenant and the kind — so check both.
+
+`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
+the Phase 2 evaluator tests would be exercising rule evaluation while
+believing they were covering static membership.
+","5","Seeded segment matches its constant [SEGMENT_VIP_STATIC, 3]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"`sent` is the end. Reopening one would make its delivery history describe
+a campaign that no longer matches it.
+","95","A sent campaign cannot be reopened","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
+"Asserted as an exact set, in both directions.
+
+A removed value breaks code that produces it. An *added* value breaks code
+that consumes it — a campaign arriving in a state this suite has never heard
+of would fall through every branch that handles the four it knows. Neither
+direction violates the schema, which is precisely why the check belongs to
+the consumer.
+","1","Enum fields are constrained to the expected values [CampaignOut, status]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
 "The refusal that matters most.
 
 Two assertions, and the second is the one with teeth: a 422 that had already
 written the status would look identical from the response alone.
-","30","A draft cannot jump straight to sent","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
+","25","A draft cannot jump straight to sent","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/survey_submission.feature: A closed survey collects nothing","34","A closed survey collects nothing","tests.steps","2026-08-20","passed","2026-08-20","","test_survey_submission","",""
+"The overview returns per-campaign stats and tenant totals in one response,
+which is what makes this assertable under parallel execution: both halves
+describe the same instant, so another worker sending a campaign mid-test
+changes both together rather than making them disagree.
+","19","The overview totals agree with its own campaigns","tests.api_tests","2026-08-20","passed","2026-08-20","","test_analytics_invariants","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","5","Seeded campaign is in the state its constant names [CAMPAIGN_GLOBEX_RUNNING, 5]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"","36","The in operator matches any of the listed values","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
+"The round trip, including the JSON attributes — the field most likely to
+be quietly dropped, since it is the only one that is not a plain column.
+","170","A created contact reads back with the values it was given","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+"State in the URL is only worth having if history works with it.","479","The back button returns to the previous grid state [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
+"A token the server did not sign must not be accepted.
+
+The payload here is deliberately well-formed nonsense: the shape of a JWT
+without a valid signature. Accepting it would mean the signature is not
+being verified, which no status-code check on a *valid* token would ever
+reveal.
+","4","A forged token is refused","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
+"500 from the list endpoint.
+
+The grid must say something. The failure mode this guards against is the
+table rendering empty — indistinguishable, to a reader, from a tenant that
+genuinely has no contacts.
+","225","A server error is shown in the grid [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
+"","13","A draft can be scheduled","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
+"The same credentials through the other door.
+
+The application exposes both a JSON login and the OAuth2 password flow that
+the /docs Authorize button uses. They must agree — if the form endpoint
+drifted, every manual exploration through /docs would be authenticating as
+something the automated tests never exercise.
+","424","The oauth2 form endpoint also issues a token","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/onsite_frequency_cap.feature: A customer stops being eligible after <cap> showings","47","A customer stops being eligible after cap showings [{'cap': '1'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_onsite_frequency_cap","",""
 "The test that proves storage_state is doing its job.
 
 It never touches the login form. The browser starts from the shared
@@ -575,13 +283,49 @@ from it on load.
 Without this, the whole storage_state mechanism would be unexercised: the
 other two tests here deliberately use an anonymous context, so nothing else
 in the suite would notice if the shared state stopped working.
-","335","A restored session lands signed in [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
-"","11","A draft can be scheduled","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
+","222","A restored session lands signed in [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
 "Neon exposes one database under two hostnames. Matching only the exact
 string would let the pooled form through, which is the form every connection
 string in this project actually uses.
-","0","The pooled and direct hosts are both recognised [ep-round-snow-axyc70lw]","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
-"The case that proves the two lookups compose rather than merely coexist.","35","One rule set can mix a column and a jsonb attribute","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
+","0","The pooled and direct hosts are both recognised [ep-round-snow-axyc70lw-pooler]","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
+"","454","A deleted contact is no longer found","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+"`any` cannot use the cohort trick — a cohort condition under `any` would
+widen the segment rather than narrow it. So this one asserts against the
+ids it created instead of against the whole membership.
+","37","Match any is a union not an intersection","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
+"The check the suite's own models are deliberately unable to make.
+
+Those models tolerate unknown fields on purpose: adding one is backwards
+compatible, and a functional test has no business failing because the
+application grew a column. But *somebody* has to notice, because an
+undeclared field is a field no consumer was told about — and on these models
+it may well be one nobody meant to publish.
+
+Pydantic emits no `additionalProperties: false`, so JSON Schema validation
+will not catch this. It has to be asserted directly.
+","0","Responses carry no undeclared fields [CampaignStats]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"Asserted as an exact set, in both directions.
+
+A removed value breaks code that produces it. An *added* value breaks code
+that consumes it — a campaign arriving in a state this suite has never heard
+of would fall through every branch that handles the four it knows. Neither
+direction violates the schema, which is precisely why the check belongs to
+the consumer.
+","1","Enum fields are constrained to the expected values [CampaignOut, channel]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"Refusing the request is the right call: without a key the endpoint cannot
+recognise a retry, so accepting it would silently give up the guarantee.
+","6","A receipt without an idempotency key is rejected","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
+"The bug this catches is a real one and reads as correct until you try it:
+compared as strings, ""9"" > ""100"", because ""9"" sorts after ""1"". A contact
+worth 9 would then match `gt 50` and one worth 100 would not.
+","25","Gt compares numerically rather than as text","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
+"","0","The contract still declares the models this suite reads [CampaignOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"","0","The deployed api is refused","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/campaign_lifecycle.feature: Delivery outcomes are reflected in the campaign's results","2258","Delivery outcomes are reflected in the campaigns results","tests.steps","2026-08-20","passed","2026-08-20","","test_campaign_lifecycle","",""
+"The field is declared as exactly two characters, so both a shorter and a
+longer value have to fail — a bound checked on one side only is a common
+and invisible mistake.
+","16","A country that is not two letters is rejected [U]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
 "The assertion that survives a rename.
 
 A renamed field changes the response and the document together, so
@@ -591,20 +335,151 @@ of what it needs, checked against what the provider now offers.
 Required, not merely present: a field that became optional is a field that
 can arrive missing, and every caller reading it would then break at runtime
 rather than here.
-","0","The fields this suite reads are declared and required [SegmentOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"200 OK, with a body that is not the shape the client expects.
+","1","The fields this suite reads are declared and required [SegmentOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"","451","Paging controls move and stop at the ends [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
+"Conformance: what the application *sends* against what it *promises*.
 
-This is the failure a contract test predicts and a functional test never
-reaches: the status is fine, so nothing in the request path complains, and
-the client walks into a field that is not there. The interface has to end up
-somewhere a reader can understand rather than half-rendered.
-","226","A malformed payload is reported rather than rendered [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
-"Editors write, admins destroy.
+This is the half a schema can check about itself, and it is not nothing —
+it catches a handler that bypasses its response_model or hand-builds a
+JSONResponse, where the document and the wire genuinely can disagree.
+","1","Live responses validate against their declared schema [CampaignOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"PATCH means partial. An implementation that rebuilt the row from the body
+would blank every field the caller left out, and the response to *this*
+request would still look correct.
+","18","An update changes only the fields it names","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+"422 rather than a silent correction. Quietly treating page=0 as page=1
+hides a caller's off-by-one instead of surfacing it.
+","17","Invalid paging parameters are rejected [{'page': 0}, page numbering starts at 1]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"Two defences, and this test separates them.
 
-The interesting part is that the editor *can* create the row and then cannot
-remove it, so this exercises the boundary between two permitted-looking
-operations rather than between permission and none.
-","20","An editor cannot delete a contact","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
+The idempotency key catches a provider retrying. But a provider that
+generates a fresh key for a genuinely duplicate event slips past that, so
+the state machine has to be idempotent too: a stage timestamp is written
+once and never overwritten. Here `replayed` is false — the key was new — and
+`applied` must still be false, because nothing was left to change.
+","16","The same event under a new key is not applied twice","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
+"Page size 10 rather than the default 20, so there are enough pages for
+""page 3"" to be a real page for acme's forty seeded contacts.","199","A deep link opens the grid at a given page [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
+"The field is declared as exactly two characters, so both a shorter and a
+longer value have to fail — a bound checked on one side only is a common
+and invisible mistake.
+","17","A country that is not two letters is rejected []","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+"The accessible view of the same data.
+
+Two renderings of one payload are two chances to disagree, and the table is
+the one someone using a screen reader gets — so it is the one that must not
+quietly drift.
+","678","The table view matches the intercepted payload [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_analytics_data","",""
+"Signing out has to clear the stored token, not merely navigate away.
+
+The failure worth catching is a sign-out that redirects while leaving the
+token in place: the screen looks right, and the next deep link walks straight
+back in. So this signs out and then tries the door again.
+","272","Signing out ends the session [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
+"The check the suite's own models are deliberately unable to make.
+
+Those models tolerate unknown fields on purpose: adding one is backwards
+compatible, and a functional test has no business failing because the
+application grew a column. But *somebody* has to notice, because an
+undeclared field is a field no consumer was told about — and on these models
+it may well be one nobody meant to publish.
+
+Pydantic emits no `additionalProperties: false`, so JSON Schema validation
+will not catch this. It has to be asserted directly.
+","0","Responses carry no undeclared fields [CampaignOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"Empty means empty, not everything.
+
+The opposite choice is defensible in the abstract and catastrophic in
+practice: a half-built segment saved with no conditions would resolve to
+every contact in the tenant, and the next campaign pointed at it would send
+to all of them.
+","26","A rule set with no conditions matches nobody","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
+"The names encode two claims — the tenant and the kind — so check both.
+
+`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
+the Phase 2 evaluator tests would be exercising rule evaluation while
+believing they were covering static membership.
+","23","Seeded segment matches its constant [SEGMENT_GLOBEX_FREE, 4]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/tenant_isolation.feature: One organisation cannot reach another's <record>","321","One organisation cannot reach anothers record [{'record': 'customer'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
+"","0","The contract still declares the models this suite reads [SegmentOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"The common case must stay silent, or the guard becomes noise people mute.","0","An ordinary local run is allowed","tests","2026-08-20","passed","2026-08-20","","test_reset_guard","",""
+"Post the identical payload twice under one key, then look at the row.
+
+The second response being 200 proves nothing on its own — an endpoint that
+applied the event twice would also return 200. What proves it is
+`delivered_at` being the same instant afterwards as it was before.
+","30","The same receipt posted twice has exactly one effect","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
+"","23","A viewer cannot create a segment","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
+"The assertion that survives a rename.
+
+A renamed field changes the response and the document together, so
+conformance still passes. What does not pass is this: the consumer's own list
+of what it needs, checked against what the provider now offers.
+
+Required, not merely present: a field that became optional is a field that
+can arrive missing, and every caller reading it would then break at runtime
+rather than here.
+","0","The fields this suite reads are declared and required [CampaignOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","5","Seeded campaign is in the state its constant names [CAMPAIGN_SCHEDULED, 2]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"Drive a campaign through the funnel and check the shape at each step.","77","The funnel never widens as it deepens","tests.api_tests","2026-08-20","passed","2026-08-20","","test_analytics_invariants","",""
+"","56","A campaign moves through running to sent","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
+"Read each id with a token from the tenant that is supposed to own it.
+
+This is the pair the tenant-isolation test is built on. If the ranges in the
+seed ever move, that test starts asserting something it does not mean, and
+this one says so plainly instead.
+","4","Seeded contact belongs to the tenant its constant names [ACME_CONTACT_ID, 1]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"`lifetime_value` is not a column — it is a key inside `attributes`.
+
+This is the half of the evaluator that a column-only implementation would
+fail, and it would fail silently: an unknown field reads as `None`, `None`
+matches nothing, and the segment would simply come back empty rather than
+erroring. So the assertion has to be that the *right* contact is in, not
+merely that the call succeeded.
+","25","A rule on a jsonb attribute selects by that attribute","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","5","Seeded campaign is in the state its constant names [CAMPAIGN_DRAFT, 1]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"Conformance: what the application *sends* against what it *promises*.
+
+This is the half a schema can check about itself, and it is not nothing —
+it catches a handler that bypasses its response_model or hand-builds a
+JSONResponse, where the document and the wire genuinely can disagree.
+","0","Live responses validate against their declared schema [SegmentOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"`%` and `_` are wildcards in SQL LIKE and an apostrophe ends a string
+literal. A search for any of them must return a normal response: an
+unescaped wildcard would silently match everything, and an unescaped quote
+is the shape of an injection.
+","22","Special characters in search are treated as text [%]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"A well-formed response with nothing in it.
+
+Worth its own test because ""no rows"" and ""broken"" render almost the same
+way if nobody designed the difference, and the application must not present
+an ordinary empty tenant as something being wrong.
+","287","An empty result shows the empty state not an error [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/segment_targeting.feature: Customers are selected by <description>","27","Customers are selected by description [{'description': 'a recorded attribute', 'field': 'lifetime_value', 'matching': '9000', 'other': '10'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_segment_targeting","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/segment_targeting.feature: A segment with no rules selects nobody","23","A segment with no rules selects nobody","tests.steps","2026-08-20","passed","2026-08-20","","test_segment_targeting","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/campaign_lifecycle.feature: A campaign cannot be reported as sent without being sent","41","A campaign cannot be reported as sent without being sent","tests.steps","2026-08-20","passed","2026-08-20","","test_campaign_lifecycle","",""
+"`opened` first, then the `delivered` that logically preceded it.
+
+The naive implementation assigns status from whichever receipt arrived last,
+which would leave this delivery reading `delivered` after it had already been
+opened — and the analytics funnel would then report more opens than
+deliveries.
+","21","Receipts arriving out of order do not regress the status","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/onsite_frequency_cap.feature: A customer stops being eligible after <cap> showings","54","A customer stops being eligible after cap showings [{'cap': '3'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_onsite_frequency_cap","",""
+"Asserted as an exact set, in both directions.
+
+A removed value breaks code that produces it. An *added* value breaks code
+that consumes it — a campaign arriving in a state this suite has never heard
+of would fall through every branch that handles the four it knows. Neither
+direction violates the schema, which is precisely why the check belongs to
+the consumer.
+","0","Enum fields are constrained to the expected values [DeliveryOut, status]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
 "The test that matters, because it goes around the interface.
 
 The list hides the Edit link from a viewer, but the editor is a route and a
@@ -616,64 +491,189 @@ careful *not* to assert: that the route is blocked. It is not, and asserting
 otherwise would be encoding a wish rather than the behaviour. The
 client-side gap is real but it is a defence-in-depth observation, not a
 vulnerability, precisely because this assertion holds.
-","934","A viewer reaching the edit route directly cannot save [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_rbac_ui","",""
-"Two numbers for the same thing can disagree, and a rate is the one people
-quote. The denominators follow marketing convention — delivery rate is of
-sent, open rate is of delivered — so this checks the arithmetic against the
-counts in the same response rather than against anything remembered.
-","31","Rates are consistent with the counts they summarise","tests.api_tests","2026-08-20","passed","2026-08-20","","test_analytics_invariants","",""
-"Validation, not storage: nothing should reach the database to be found
-later by whoever wonders why the mailing list has ""not-an-email"" in it.
-","28","A malformed email is rejected","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+","717","A viewer reaching the edit route directly cannot save [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_rbac_ui","",""
+"","0","The contract still declares the models this suite reads [DeliveryOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"A failure needs its reason kept, because ""why did this not arrive"" is the
+question anyone actually asks, and the status alone cannot answer it.
+","12","A failed receipt records its reason","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/campaign_lifecycle.feature: A campaign with no audience is not sent","39","A campaign with no audience is not sent","tests.steps","2026-08-20","passed","2026-08-20","","test_campaign_lifecycle","",""
+"The token is only useful if the identity behind it is right.
+
+Asserting that /auth/me echoes the tenant and role is the assertion that
+matters: the application decides every authorisation question from those
+two claims, so if they were wrong here, every RBAC and isolation test below
+would be testing the wrong user.
+","524","Login returns a token that identifies the user","tests.api_tests","2026-08-20","passed","2026-08-20","","test_auth","",""
+"`plan` is a column on the contacts table.","25","A rule on a column field selects by that column","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
+"One campaign per interesting state, which is what the state-machine tests
+in Phase 2 will select from. A constant pointing at the wrong state would
+make ""reject draft -> sent"" pass or fail for reasons unrelated to the rule.
+","6","Seeded campaign is in the state its constant names [CAMPAIGN_SENT, 3]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"The boundary between two permitted-looking actions, which is the one most
+easily got wrong: it is far easier to remember that viewers cannot write than
+that editors cannot destroy.
+","909","An editor is offered editing but not deletion [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_rbac_ui","",""
+"The regression test for DEF-001.
+
+A contact referenced by a delivery must not be removable, and the refusal
+has to be a conflict rather than a server error. The distinction is not
+cosmetic: 500 with a body of ""Internal Server Error"" tells the caller
+nothing about why, is indistinguishable from a genuine fault in monitoring,
+and — under CI's request density — did not reliably produce a response at
+all, which is how it became DEF-004.
+
+The second assertion is the one with teeth. A refusal that had already
+committed the delete would look identical from the status code alone.
+","12","A contact with deliveries cannot be deleted","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""
+"The request is aborted as a timeout, which is what the browser sees when
+a server accepts a connection and then never answers.
+
+The distinction that matters is between ""the API said no"" and ""the API said
+nothing"" — the second is an infrastructure problem, and telling the reader so
+is the difference between a useful message and a misleading one.
+","180","A timed out request reports that the api is unreachable [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
+"These two are a different kind of claim: not seeded rows, but the
+application's declared limits. They are asserted the way a caller would
+discover them — by asking for the boundary and one past it.
+","24","Pagination constants match the api contract","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"404, specifically not 403 — and that distinction is the whole test.
+
+Both statuses deny the request, so both look secure. But 403 means ""this
+exists and you may not have it"", which confirms the id is real. Anyone can
+then walk the id space and learn exactly how many customers the other
+tenant has, and which ids to target elsewhere. 404 says only ""no such
+contact for you"", which leaks nothing.
+
+The control assertion matters as much: the same call against the caller's
+*own* contact must succeed. Without it, a broken endpoint returning 404 for
+everything would pass this test while being entirely non-functional.
+","280","A contact from another tenant reads as not found","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
+"","254","Changing the page size changes the rows shown [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
+"422 rather than a silent correction. Quietly treating page=0 as page=1
+hides a caller's off-by-one instead of surfacing it.
+","12","Invalid paging parameters are rejected [{'size': 0}, a page of nothing is not a page]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
+"Arriving at the grid is not enough on its own.
+
+The redirect proves routing happened; the header proves the application knows
+*who* arrived. A session restored with a broken token would still redirect,
+and would then show an empty header — which is why both are asserted.
+","808","A valid login signs the user in [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/campaign_lifecycle.feature: A campaign reaches everyone in its segment","2139","A campaign reaches everyone in its segment","tests.steps","2026-08-20","passed","2026-08-20","","test_campaign_lifecycle","",""
+"Empty is a state to design for, not an error. The distinction matters:
+a blank table looks identical to a broken one.
+","239","A search with no matches shows the empty state [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
+"The names encode two claims — the tenant and the kind — so check both.
+
+`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
+the Phase 2 evaluator tests would be exercising rule evaluation while
+believing they were covering static membership.
+","4","Seeded segment matches its constant [SEGMENT_HIGH_VALUE_RULE, 2]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"The same 404-not-403 rule as contacts, across the other two modules.
+
+Isolation implemented per-endpoint tends to be implemented per-endpoint
+*inconsistently* — one router remembers to scope its query and the next one
+does not. Each case carries its own control read so a blanket 404 cannot
+pass for security.
+","16","Another tenants records read as not found [segment, /api/segments]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
+"Asserted as an exact set, in both directions.
+
+A removed value breaks code that produces it. An *added* value breaks code
+that consumes it — a campaign arriving in a state this suite has never heard
+of would fall through every branch that handles the four it knows. Neither
+direction violates the schema, which is precisely why the check belongs to
+the consumer.
+","1","Enum fields are constrained to the expected values [SegmentOut, kind]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/survey_submission.feature: A submitted response is counted in the survey's results","62","A submitted response is counted in the surveys results","tests.steps","2026-08-20","passed","2026-08-20","","test_survey_submission","",""
 "The endpoint returns 202 before the work is done, so the only honest
 assertion is one made after polling. The fixture does the polling; this
 checks the state it polled to.
-","14","An asynchronous send completes when polled","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
-"`%` and `_` are wildcards in SQL LIKE and an apostrophe ends a string
-literal. A search for any of them must return a normal response: an
-unescaped wildcard would silently match everything, and an unescaped quote
-is the shape of an injection.
-","23","Special characters in search are treated as text [%]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"`sent` is the end. Reopening one would make its delivery history describe
-a campaign that no longer matches it.
-","114","A sent campaign cannot be reopened","tests.api_tests","2026-08-20","passed","2026-08-20","","test_campaign_states","",""
-"","395","Changing the page size changes the rows shown [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_contacts_grid","",""
-"A well-formed response with nothing in it.
+","10","An asynchronous send completes when polled","tests.api_tests","2026-08-20","passed","2026-08-20","","test_delivery_idempotency","",""
+"The control for every refusal in this file.
 
-Worth its own test because ""no rows"" and ""broken"" render almost the same
-way if nobody designed the difference, and the application must not present
-an ordinary empty tenant as something being wrong.
-","249","An empty result shows the empty state not an error [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_error_states","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/segment_targeting.feature: A segment with no rules selects nobody","20","A segment with no rules selects nobody","tests.steps","2026-08-20","passed","2026-08-20","","test_segment_targeting","",""
-"Signing out has to clear the stored token, not merely navigate away.
+Without it, an endpoint broken for everyone would pass all the negative
+tests — 403 for a viewer looks identical whether the rule is working or the
+route is simply dead.
+","323","An editor can create a contact","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
+"The assertion that survives a rename.
 
-The failure worth catching is a sign-out that redirects while leaving the
-token in place: the screen looks right, and the next deep link walks straight
-back in. So this signs out and then tries the door again.
-","327","Signing out ends the session [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
-"422 rather than a silent correction. Quietly treating page=0 as page=1
-hides a caller's off-by-one instead of surfacing it.
-","11","Invalid paging parameters are rejected [{'size': 0}, a page of nothing is not a page]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_pagination","",""
-"","0","The contract still declares the models this suite reads [CampaignStats]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+A renamed field changes the response and the document together, so
+conformance still passes. What does not pass is this: the consumer's own list
+of what it needs, checked against what the provider now offers.
+
+Required, not merely present: a field that became optional is a field that
+can arrive missing, and every caller reading it would then break at runtime
+rather than here.
+","1","The fields this suite reads are declared and required [DeliveryOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"The names encode two claims — the tenant and the kind — so check both.
+
+`SEGMENT_VIP_STATIC` pointing at a rule segment would be the expensive one:
+the Phase 2 evaluator tests would be exercising rule evaluation while
+believing they were covering static membership.
+","22","Seeded segment matches its constant [SEGMENT_ENTERPRISE_RULE, 1]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_seed_data","",""
+"The same 404-not-403 rule as contacts, across the other two modules.
+
+Isolation implemented per-endpoint tends to be implemented per-endpoint
+*inconsistently* — one router remembers to scope its query and the next one
+does not. Each case carries its own control read so a blanket 404 cannot
+pass for security.
+","13","Another tenants records read as not found [campaign, /api/campaigns]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
+"Editors write, admins destroy.
+
+The interesting part is that the editor *can* create the row and then cannot
+remove it, so this exercises the boundary between two permitted-looking
+operations rather than between permission and none.
+","23","An editor cannot delete a contact","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
+"The assertion that survives a rename.
+
+A renamed field changes the response and the document together, so
+conformance still passes. What does not pass is this: the consumer's own list
+of what it needs, checked against what the provider now offers.
+
+Required, not merely present: a field that became optional is a field that
+can arrive missing, and every caller reading it would then break at runtime
+rather than here.
+","1","The fields this suite reads are declared and required [ContactOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"403, and — the part a status-code assertion would miss — no contact.
+
+An endpoint that rejects the response but has already committed the row is
+a real failure mode, and it looks identical to a correct one from the
+status code alone. So the test also asks, as an admin, whether the record
+exists. Searching by the unique email means the answer cannot be confused
+by anything another worker created.
+","325","Viewer cannot create a contact","tests.api_tests","2026-08-20","passed","2026-08-20","","test_rbac","",""
+"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/segment_targeting.feature: Customers are selected by <description>","28","Customers are selected by description [{'description': 'their plan', 'field': 'plan', 'matching': 'enterprise', 'other': 'free'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_segment_targeting","",""
+"The failure has to be visible *and* contained.
+
+Two things go wrong in real login screens: the error is swallowed and the
+form just sits there, or the error shows while the user is signed in anyway.
+So this asserts the message appears, and that the browser stayed on the login
+route with no session established.
+","1196","An invalid login shows an error [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_login","",""
+"The subtle one.
+
+A static segment is just a list of ids, and nothing stops an acme user
+writing globex's contact id into it. The protection cannot live in the
+segment — it has to live in how membership is resolved, which is scoped to
+the caller's tenant. So the segment is allowed to hold the id, and the id
+simply never resolves to a contact.
+","26","A static segment cannot pull in another tenants contact","tests.api_tests","2026-08-20","passed","2026-08-20","","test_tenant_isolation","",""
 "Conformance: what the application *sends* against what it *promises*.
 
 This is the half a schema can check about itself, and it is not nothing —
 it catches a handler that bypasses its response_model or hand-builds a
 JSONResponse, where the document and the wire genuinely can disagree.
-","0","Live responses validate against their declared schema [SegmentOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
-"Both halves in one test, deliberately.
+","1","Live responses validate against their declared schema [DeliveryOut]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"The assertion that survives a rename.
 
-Asserting only that a viewer sees no buttons would pass just as well against
-a grid that failed to render at all. The admin context is the control that
-makes the viewer's absence mean something.
-","995","A viewer sees no write controls [chromium]","tests.ui_tests","2026-08-20","passed","2026-08-20","","test_rbac_ui","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/onsite_frequency_cap.feature: A customer stops being eligible after <cap> showings","38","A customer stops being eligible after cap showings [{'cap': '1'}]","tests.steps","2026-08-20","passed","2026-08-20","","test_onsite_frequency_cap","",""
-"`lifetime_value` is not a column — it is a key inside `attributes`.
+A renamed field changes the response and the document together, so
+conformance still passes. What does not pass is this: the consumer's own list
+of what it needs, checked against what the provider now offers.
 
-This is the half of the evaluator that a column-only implementation would
-fail, and it would fail silently: an unknown field reads as `None`, `None`
-matches nothing, and the segment would simply come back empty rather than
-erroring. So the assertion has to be that the *right* contact is in, not
-merely that the call succeeded.
-","24","A rule on a jsonb attribute selects by that attribute","tests.api_tests","2026-08-20","passed","2026-08-20","","test_segments_rules","",""
-"/home/runner/work/engage-test-automation/engage-test-automation/tests/features/campaign_lifecycle.feature: Delivery outcomes are reflected in the campaign's results","2229","Delivery outcomes are reflected in the campaigns results","tests.steps","2026-08-20","passed","2026-08-20","","test_campaign_lifecycle","",""
+Required, not merely present: a field that became optional is a field that
+can arrive missing, and every caller reading it would then break at runtime
+rather than here.
+","1","The fields this suite reads are declared and required [CampaignStats]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contract_openapi","",""
+"The field is declared as exactly two characters, so both a shorter and a
+longer value have to fail — a bound checked on one side only is a common
+and invisible mistake.
+","19","A country that is not two letters is rejected [USA]","tests.api_tests","2026-08-20","passed","2026-08-20","","test_contacts_crud","",""

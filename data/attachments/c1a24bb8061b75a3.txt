@@ -1,2 +1,0 @@
-09:54:01 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts?size=0 "HTTP/1.1 422 Unprocessable Content"
-09:54:01 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts?size=0 -> 422 (10 ms)
