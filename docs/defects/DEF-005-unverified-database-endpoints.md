@@ -4,8 +4,8 @@
 |---|---|
 | **Component** | Environment configuration — `~/engage-app/.env` (untracked), Neon project `engage` |
 | **Severity** | **High** — not because local runs are blocked, but because the same misconfiguration in the other direction wipes the production demo. See *Impact*. |
-| **Priority** | **High** — the guardrail is cheap and does not exist |
-| **Status** | **Open.** Local runs blocked; root cause partly UNKNOWN (see below) |
+| **Priority** | **High** — acted on: the guard is built and tested (see *Guardrail*) |
+| **Status** | **Root cause established. Guarded, not merely reported** — the suite now refuses to reset a production-looking target (`tests/utils/safety.py`, 7 tests). Environment restored on a new test branch. |
 | **Found** | 2026-08-19, while writing `PROJECT_INVENTORY.md` — by trying to read row counts, not by any test |
 
 ## Summary
@@ -19,8 +19,8 @@ dedicated `test` branch. Since 2026-08-19 that endpoint has rejected the credent
 API reports `{"status":"degraded","database":"unreachable"}`. The live demo, on endpoint
 `ep-round-snow-axyc70lw`, accepts the *same* credential and is unaffected.
 
-The two endpoints were never verified as distinct by anything other than a one-off manual probe,
-and nothing has verified it since.
+At the time, the two endpoints had been verified as distinct only by a one-off manual probe, and
+nothing checked it afterwards. A guard now does, on every reset.
 
 ## Impact
 
@@ -83,28 +83,48 @@ endpoint surfaces as an authentication failure.
 
 ## Root cause
 
-**UNKNOWN, and deliberately left as UNKNOWN.**
+**Established.** The Neon project `engage` has exactly two branches:
 
-What changed server-side at `ep-silent-shape-ax7q77lk` between 2026-08-18 and 2026-08-19 cannot be
-determined from the evidence available here. The Neon console now shows the `engage` project with a
-single branch, which is consistent with a test branch having been removed — but "consistent with"
-is not "established", and no console history, audit log or API record was available to confirm it.
-Whether the branch was deleted, its role credential reset, or the endpoint invalidated some other
-way is not known.
+| Branch | Parent | Created | Endpoint |
+|---|---|---|---|
+| `production` | — (default) | at project creation | `ep-round-snow-axyc70lw` |
+| `test` | `production` | 2026-08-20 | `ep-falling-firefly-axrf9s08` |
 
-Two earlier hypotheses were considered and are recorded as rejected so nobody re-runs them:
+The endpoint in the old `.env`, **`ep-silent-shape-ax7q77lk`, belongs to neither.** It was a third
+branch, and it was deleted. That is why the connection stopped working, and it is why no credential
+would have fixed it.
 
-- **Scale-to-zero restored a control-plane credential and discarded a manual `ALTER USER`.**
-  Rejected: it does not fit a project with a single branch, and no Neon documentation was found
-  supporting the mechanism.
-- **The endpoint no longer exists, and Neon reports that as an auth failure.** Plausible and
-  consistent with every observation, but **not confirmable** — Neon's documentation does not
-  describe that behaviour, and the error is identical to a genuinely wrong password.
+It was a real branch and not a replica of production: the probe on 2026-08-18 wrote a row through
+one endpoint and could not see it through the other, and the contact counts diverged 60 → 61 while
+production stayed at 60. Two databases, confirmed by observation at the time.
 
-The part that *is* established, and is the actual defect, needs no server-side explanation:
-**local development and the live demo were configured against two endpoints whose distinctness was
-never verified by anything repeatable.** One manual probe on one afternoon was the entire basis for
-believing the demo was safe from local runs.
+So the failure had nothing to do with the password, which is precisely what made it expensive.
+
+## One error message, three different causes
+
+`password authentication failed for user 'neondb_owner'` appeared three times in this project, from
+three unrelated causes. **Not one of them was a wrong password.**
+
+| # | What was actually wrong | Why the message misleads |
+|---|---|---|
+| a | **The branch had been deleted.** The endpoint in the connection string no longer belonged to anything. | There is nothing to authenticate against, so the proxy reports an authentication failure rather than "no such endpoint". |
+| b | **A child branch silently kept the parent's old password.** A branch inherits its parent's roles *and their passwords as they were at branch time*, and does not track later changes. Reset the parent's password afterwards and the child still expects the old one. | Both branches are healthy and reachable. The credential is simply correct for a different branch than the one being dialled. |
+| c | **The wrong page was used to rotate the credential.** Neon's left-hand *Credentials* page manages S3 and AI Gateway tokens; Postgres roles live under **Branch → Roles**. Resetting on the former changes nothing about Postgres. | The rotation appears to succeed, and the old password keeps failing — which reads as "the reset did not take". |
+
+All three are **topology or lifecycle faults**. None is a credential fault. The message points at
+the password every time, and it was never the password — that ambiguity is the actual content of
+this defect, and it cost roughly a day across two investigations plus one wrong published
+hypothesis.
+
+Neon's own documentation does not disambiguate: it attributes the message to *"incorrectly defined
+connection information, or the driver you are using does not support SNI"*, and documents a
+separate, explicit error only for a **missing** endpoint ID. Verified here that the error is
+identical whether the credential is right or deliberate garbage, so the message cannot be used to
+tell the two apart.
+
+**Rejected hypothesis, recorded so nobody re-runs it:** that scale-to-zero restored a control-plane
+credential and discarded a manual `ALTER USER`. It does not fit a project whose branch list never
+contained the endpoint in question, and no documentation was found supporting the mechanism.
 
 ## Why testing missed it
 
@@ -127,6 +147,20 @@ Specifically:
   only `connected` or `unreachable`.
 
 ## If this happens again
+
+**First: assume the topology is wrong, not the credential.** `password authentication failed` has
+been produced three times in this project by a deleted branch, by a child branch holding its
+parent's old password, and by rotating the wrong kind of credential entirely. Checking which branch
+an endpoint belongs to takes a minute; rotating a password that was never the problem costs an
+afternoon and, done through the wrong page, produces no change at all.
+
+**A child branch inherits its parent's roles and passwords at the moment it is branched, and does
+not track later parent changes.** After resetting a password on a parent, every child still expects
+the old one. Reset the role on each branch that will be connected to, and take the connection
+string from that branch rather than editing the parent's.
+
+**Rotate Postgres roles under Branch → Roles.** The left-hand *Credentials* page manages S3 and AI
+Gateway tokens, not database roles. A reset there will appear to succeed and change nothing.
 
 **Confirm which branch a connection string belongs to, before trusting it.** The endpoint ID is the
 first label of the host — `ep-silent-shape-ax7q77lk-pooler.c-4.us-east-2.aws.neon.tech` is endpoint
@@ -164,10 +198,20 @@ If that second query returns anything other than `0`, the endpoints are the same
 **Until it is proven, set `RESET_DATABASE=false`** in `engage-test-automation/.env`. It costs the
 reset-dependent tests and protects everything else.
 
-## Suggested guardrail
+## Guardrail — built
 
-The framework cannot currently protect itself, because it cannot see which database it is about to
-reset. The cheapest fix is on the application side: have `/api/health` report the database endpoint
-host (the `ep-…` label only — never the credential), and have the suite's `database_state` fixture
-refuse to reset when that host matches the known production endpoint unless an explicit override is
-set. That converts a silent, irreversible mistake into a refusal with a message.
+Implemented rather than suggested, because the report on its own prevents nothing.
+
+`GET /api/health` now returns `database_endpoint` — the `ep-…` label only, never the host, user or
+credential: enough to recognise which database this is, useless for reaching it. The suite's
+`database_state` fixture calls `looks_like_production()` before every reset and refuses when the
+endpoint matches production, or when the API under test is the deployed instance. The refusal names
+what it detected, says where the wrong value comes from, and documents the
+`ALLOW_PRODUCTION_RESET=true` override.
+
+The endpoint check is the one that matters. The dangerous case — a local application connected to
+the production database — is invisible to every other signal: the URL is `127.0.0.1` and health is
+green. The hostname check is a fallback for an application too old to report its endpoint.
+
+Seven tests cover the guard itself, including that exact case. Verified end to end as well: armed
+against the current endpoint, the suite refuses to start; with the override set, it proceeds.
