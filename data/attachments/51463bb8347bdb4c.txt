@@ -1,0 +1,21 @@
+POST http://127.0.0.1:8000/api/segments
+
+{
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate",
+  "authorization": "<redacted>",
+  "connection": "keep-alive",
+  "content-length": "81",
+  "content-type": "application/json",
+  "host": "127.0.0.1:8000",
+  "user-agent": "python-httpx/0.28.1"
+}
+
+{
+  "kind": "rule",
+  "name": "Segment bfc8fa80",
+  "rules": {
+    "conditions": [],
+    "match": "all"
+  }
+}

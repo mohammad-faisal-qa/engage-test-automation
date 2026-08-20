@@ -1,0 +1,36 @@
+HTTP 200
+
+[
+  {
+    "attributes": {
+      "cohort": "cohort-dcd10cfe",
+      "lifetime_value": 2500,
+      "newsletter": true,
+      "signup_source": "automation"
+    },
+    "country": "US",
+    "created_at": "2026-08-20T10:44:00.900726Z",
+    "email": "contact.55b4d3b4@qa.example.com",
+    "first_name": "Test",
+    "id": 89,
+    "last_name": "Contact55b4d3b4",
+    "plan": "pro",
+    "tenant_id": "acme"
+  },
+  {
+    "attributes": {
+      "cohort": "cohort-dcd10cfe",
+      "lifetime_value": 2500,
+      "newsletter": true,
+      "signup_source": "automation"
+    },
+    "country": "GB",
+    "created_at": "2026-08-20T10:44:00.909218Z",
+    "email": "contact.52c29139@qa.example.com",
+    "first_name": "Test",
+    "id": 90,
+    "last_name": "Contact52c29139",
+    "plan": "pro",
+    "tenant_id": "acme"
+  }
+]

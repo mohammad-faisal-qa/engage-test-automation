@@ -1,1 +1,1 @@
-{"reportName":"Engage — PR gate","testRuns":[],"statistic":{"failed":0,"broken":0,"skipped":0,"passed":151,"unknown":0,"total":151},"time":{"start":1787222248339,"stop":1787222339395,"duration":91056,"minDuration":0,"maxDuration":2335,"sumDuration":21043}}
+{"reportName":"Engage — PR gate","testRuns":[],"statistic":{"failed":0,"broken":0,"skipped":0,"passed":151,"unknown":0,"total":151},"time":{"start":1787222558153,"stop":1787222654994,"duration":96841,"minDuration":0,"maxDuration":2154,"sumDuration":23476}}

@@ -1,0 +1,19 @@
+HTTP 200
+
+{
+  "created_at": "2026-01-01T09:00:00Z",
+  "id": 1,
+  "kind": "rule",
+  "name": "Enterprise customers",
+  "rules": {
+    "conditions": [
+      {
+        "field": "plan",
+        "op": "eq",
+        "value": "enterprise"
+      }
+    ],
+    "match": "all"
+  },
+  "tenant_id": "acme"
+}

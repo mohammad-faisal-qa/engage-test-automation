@@ -1,0 +1,8 @@
+HTTP 201
+
+{
+  "contact_id": 128,
+  "id": 4,
+  "notification_id": 7,
+  "shown_at": "2026-08-20T10:44:05.733121Z"
+}

@@ -1,0 +1,18 @@
+HTTP 201
+
+{
+  "attributes": {
+    "cohort": "cohort-4e2a8a16",
+    "lifetime_value": 2500,
+    "newsletter": true,
+    "signup_source": "automation"
+  },
+  "country": "US",
+  "created_at": "2026-08-20T10:44:00.842256Z",
+  "email": "contact.ddcfacc5@qa.example.com",
+  "first_name": "Test",
+  "id": 87,
+  "last_name": "Contactddcfacc5",
+  "plan": "pro",
+  "tenant_id": "acme"
+}
