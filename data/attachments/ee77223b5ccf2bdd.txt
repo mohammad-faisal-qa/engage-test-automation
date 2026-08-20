@@ -1,6 +1,0 @@
-07:33:44 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns "HTTP/1.1 201 Created"
-07:33:44 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns -> 201 (13 ms)
-07:33:44 INFO  httpx | HTTP Request: PATCH http://127.0.0.1:8000/api/campaigns/7 "HTTP/1.1 200 OK"
-07:33:44 INFO  tests.http | PATCH http://127.0.0.1:8000/api/campaigns/7 -> 200 (17 ms)
-07:33:45 INFO  httpx | HTTP Request: PATCH http://127.0.0.1:8000/api/campaigns/7 "HTTP/1.1 200 OK"
-07:33:45 INFO  tests.http | PATCH http://127.0.0.1:8000/api/campaigns/7 -> 200 (40 ms)

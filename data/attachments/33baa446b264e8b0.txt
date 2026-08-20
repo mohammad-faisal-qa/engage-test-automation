@@ -1,0 +1,5 @@
+HTTP 409
+
+{
+  "detail": "This contact has deliveries and cannot be removed"
+}
