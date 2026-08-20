@@ -15,33 +15,54 @@ import pytest
 pytestmark = [pytest.mark.db]
 
 
-# Each entry: the table, and a query that finds rows whose tenant disagrees with
-# the tenant of the record they belong to. A correct system returns zero.
+# Each entry: how to find the rows *this run caused to exist*, and how to find
+# any of those whose tenant disagrees with the record it belongs to. A correct
+# system returns zero for the second while the first is non-empty.
 #
-# Written as joins rather than as "rows I created" on purpose. Any row anywhere
-# that fails this is a real defect no matter which test or which worker produced
-# it, which makes the assertion both stronger and safe under `-n 4`.
+# Scoped to this run's own campaign, deliveries and notification rather than
+# written as a query over the whole table — and that choice is the difference
+# between testing storage and testing the write path. A table-wide check is
+# satisfied by any means, including a migration that backfilled `tenant_id`
+# across historical rows; it would stay green while the handler that is supposed
+# to stamp new rows had stopped doing so, and nothing would announce it. Nothing
+# can backfill a row created a moment ago by this test. What the narrower scope
+# gives up is detection of a pre-existing mis-stamped row somewhere else in the
+# table, which is a real loss and the lesser one: a broken write path produces
+# those rows continuously, so this catches the cause rather than one symptom.
 TENANT_STAMP_CHECKS = {
-    "deliveries": """
-        SELECT count(*) FROM deliveries d
-        JOIN campaigns c ON c.id = d.campaign_id
-        JOIN contacts  p ON p.id = d.contact_id
-        WHERE d.tenant_id <> c.tenant_id OR d.tenant_id <> p.tenant_id
-    """,
-    "webhook_events": """
-        SELECT count(*) FROM webhook_events w
-        JOIN deliveries d ON d.id = w.delivery_id
-        WHERE w.tenant_id <> d.tenant_id
-    """,
-    "notification_impressions": """
-        SELECT count(*) FROM notification_impressions i
-        JOIN onsite_notifications n ON n.id = i.notification_id
-        JOIN contacts c ON c.id = i.contact_id
-        WHERE i.tenant_id <> n.tenant_id OR i.tenant_id <> c.tenant_id
-    """,
+    "deliveries": {
+        "mine": "SELECT count(*) FROM deliveries WHERE campaign_id = %s",
+        "crossed": """
+            SELECT count(*) FROM deliveries d
+            JOIN campaigns c ON c.id = d.campaign_id
+            JOIN contacts  p ON p.id = d.contact_id
+            WHERE d.campaign_id = %s
+              AND (d.tenant_id <> c.tenant_id OR d.tenant_id <> p.tenant_id)
+        """,
+        "params": lambda rows: (rows["campaign_id"],),
+    },
+    "webhook_events": {
+        "mine": "SELECT count(*) FROM webhook_events WHERE delivery_id = ANY(%s)",
+        "crossed": """
+            SELECT count(*) FROM webhook_events w
+            JOIN deliveries d ON d.id = w.delivery_id
+            WHERE w.delivery_id = ANY(%s)
+              AND w.tenant_id <> d.tenant_id
+        """,
+        "params": lambda rows: (rows["delivery_ids"],),
+    },
+    "notification_impressions": {
+        "mine": "SELECT count(*) FROM notification_impressions WHERE notification_id = %s",
+        "crossed": """
+            SELECT count(*) FROM notification_impressions i
+            JOIN onsite_notifications n ON n.id = i.notification_id
+            JOIN contacts c ON c.id = i.contact_id
+            WHERE i.notification_id = %s
+              AND (i.tenant_id <> n.tenant_id OR i.tenant_id <> c.tenant_id)
+        """,
+        "params": lambda rows: (rows["notification_id"],),
+    },
 }
-
-POPULATION = {name: f"SELECT count(*) FROM {name}" for name in TENANT_STAMP_CHECKS}
 
 
 @pytest.mark.parametrize("table", sorted(TENANT_STAMP_CHECKS), ids=sorted(TENANT_STAMP_CHECKS))
@@ -60,19 +81,30 @@ def test_every_row_carries_the_tenant_of_its_owner(db, stamped_rows, table):
     *storage* fact: the data was filed under the right owner in the first place.
     A system can pass the first and fail the second, and the failure is the worse
     of the two because nothing reports it.
+
+    The rows examined are only the ones this test caused: a campaign sent to a
+    private two-contact cohort, its deliveries, the receipt posted against one of
+    them, and an impression on a notification created here. So this asserts that
+    the code path which *wrote* them stamped them correctly, which is a claim a
+    backfill cannot satisfy on its behalf.
     """
-    assert db.count(POPULATION[table]) > 0, (
-        f"{table} is empty, so this assertion proves nothing — the fixture that "
-        f"should have created a row through the API did not"
+    check = TENANT_STAMP_CHECKS[table]
+    params = check["params"](stamped_rows)
+
+    mine = db.count(check["mine"], params)
+    assert mine > 0, (
+        f"this run created no rows in {table}, so the assertion below would pass "
+        f"by vacuum. The fixture that should have created them through the API "
+        f"did not."
     )
 
-    crossed = db.count(TENANT_STAMP_CHECKS[table])
+    crossed = db.count(check["crossed"], params)
 
     assert crossed == 0, (
-        f"{crossed} row(s) in {table} carry a tenant_id that disagrees with the "
-        f"record they belong to. Data has been filed under the wrong owner, and "
-        f"no HTTP response would reveal it because this table's tenant is never "
-        f"exposed."
+        f"{crossed} of the {mine} row(s) this run wrote to {table} carry a "
+        f"tenant_id that disagrees with the record they belong to. Data was "
+        f"filed under the wrong owner as it was written, and no HTTP response "
+        f"would reveal it because this table's tenant is never exposed."
     )
 
 

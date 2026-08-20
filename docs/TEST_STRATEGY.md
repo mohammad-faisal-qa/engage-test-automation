@@ -214,6 +214,31 @@ journey levels, where their logic lives. Their forms are the least risky part of
 most expensive to test through a browser. This is a coverage gap and it is a chosen one; if
 capping ever breaks in a way only the form can cause, this decision is why we missed it.
 
+**The campaign wizard and the segment rule builder, through the browser.** Both page objects exist —
+`CampaignWizard` and the `RuleBuilder` component — and nothing drives them. That has read as an
+oversight for two phases, so here is the decision: they are not worth building now, and the reason is
+that the risk they would cover is already covered where it actually lives.
+
+The wizard is a four-step form over a state machine, and the state machine is the risky half: a
+campaign must not go `sent → draft`, must not send twice, must not report as sent without sending.
+Six API tests assert exactly that, directly, in about a second. Driving the same assertions through
+four wizard steps would be slower, more fragile, and would report a rendering problem when the state
+machine was wrong. The rule builder is the same shape: segment membership is computed, not stored, and
+eight API tests cover both field kinds — a real column and a JSONB attribute — across every operator.
+A browser test would re-ask a question already answered and couple the answer to a form.
+
+**What that leaves genuinely uncovered**, stated plainly rather than implied: whether the form submits
+what the user actually chose. The API tests prove the engine is right about a payload; nothing proves
+the wizard builds that payload from the boxes on screen, or that the rule builder cannot compose a
+condition it is unable to save. If a defect ever arrives where the UI sends something other than what
+was selected, this paragraph is why it was missed.
+
+**The condition for revisiting.** Either of those bugs appearing once, or the wizard gaining logic of
+its own — conditional steps, client-side validation that the API does not repeat. Until then the two
+page objects stay as the seam that makes those tests cheap to add, and they should not be counted as
+coverage: an unused page object is scaffolding, not a test, and this document is the only thing
+stopping an inventory from reading it as the latter.
+
 **Anything requiring a real email or SMS provider.** Delivery is exercised through the webhook the
 provider would call. Sending an actual message would make the suite depend on a mailbox, and the
 part worth testing — what the system does with a receipt — is unchanged either way.
@@ -260,16 +285,28 @@ are all visible over HTTP and all stayed there.
 | Rule | Enforced by |
 |---|---|
 | Reads only. No writes, no schema changes, no cleanup through this path | **Postgres.** Every transaction opens `BEGIN READ ONLY`, so an `INSERT`, `UPDATE`, `DELETE` or `ALTER` is refused by the server — `cannot execute DELETE in a read-only transaction`. A statement check in `utils/db.py` catches the same mistake earlier with a clearer message, but the server is the guarantee |
+| The guarantee has no autocommit hole | **Encapsulation.** Read-only is a property of a transaction, not of a connection: with autocommit on there is no transaction to have marked and a write succeeds. So the connection never leaves the module — the helper that opens it is private and `Database` exposes only reads, leaving no caller in a position to turn autocommit on |
 | Its own URL — `TEST_DATABASE_URL`, never the application's `DATABASE_URL` | Configuration. Pointing the suite at a database is a separate, deliberate act from pointing the application at one |
 | Unset means skip, not fail | A session fixture. A fresh clone runs green with no database in sight |
 | CI points at the `postgres:16` service container, never Neon | The regression job is the only job that sets the variable, and it sets it to the same throwaway container the application is using |
 | Every `db` test states in its docstring why the API cannot show this | A collection-time check that fails the run — `pytest.UsageError`, exit 4, nothing executes |
 
-One implementation note worth recording, because the obvious approach fails silently in the wrong
-direction: passing `options=-c default_transaction_read_only=on` at connect time does **not** survive
-a connection pooler. Neon's pooled endpoint rejects it outright as an unsupported startup parameter,
-and every connection string in this project uses the pooled host. `BEGIN READ ONLY` is an ordinary
-statement inside the session, so it works through a pooler and makes the same promise.
+Two implementation notes, because the obvious approaches both fail and one of them fails
+dangerously.
+
+**A startup parameter does not survive a pooler.** `options=-c default_transaction_read_only=on` at
+connect time is rejected outright by Neon's pooled endpoint as an unsupported startup parameter, and
+every connection string in this project uses the pooled host.
+
+**A session-level setting survives too well.** `SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY`
+is the textbook fix for the autocommit hole, it works through the pooler, and it must not be used
+here. A pooler multiplexes clients onto shared server connections, so the setting outlives the session
+that issued it and is inherited by whoever is handed that connection next — including the application
+under test. Setting it put the *application* into read-only sessions: `POST /api/test/reset` began
+returning 500, and a brand-new connection opened by anyone reported `transaction_read_only = on`
+until the pool was cleared. A test framework that can silently make the system under test read-only
+is a worse problem than the narrow gap it was closing, which is why that gap is closed by keeping the
+connection inside the module instead.
 
 **The docstring rule is mechanical on purpose.** The risk this layer carries is not that these five
 queries are wrong — they are short and they are checked. It is that the door is now open, and the
@@ -286,10 +323,18 @@ depends on, and this suite will go red for it — a false failure, and the most 
 it teaches people that red means "the tests need updating" rather than "the application is wrong".
 Every other test here is insulated from that by construction, and these five are not.
 
-**Rot is the more likely outcome than breakage.** A test coupled to storage stays green while the
-meaning underneath it drifts. If `tenant_id` on `deliveries` were ever backfilled by a migration
-rather than written by the handler, the tenant-stamp check would keep passing and would have stopped
-testing what it claims to test. Nothing would announce that.
+**Rot is the more likely outcome than breakage** — a test coupled to storage stays green while the
+meaning underneath it drifts. The clearest version of that was closed rather than accepted. The
+tenant-stamp check originally queried each table whole, which a migration that backfilled `tenant_id`
+across historical rows would satisfy: the check would keep passing while the handler that is supposed
+to stamp new rows had stopped doing so. It now examines only the rows the test itself caused to exist
+— a campaign sent to a private cohort, its deliveries, the receipt posted against one of them, an
+impression on a notification created in the same fixture. Nothing can backfill a row created a moment
+ago, so the assertion is about the write path rather than about stored state. What that gives up is
+detection of a pre-existing mis-stamped row elsewhere in the table; that is a real loss and the lesser
+one, because a broken write path produces such rows continuously and this catches the cause.
+
+The residual coupling is to table and column *names*, and there is no clever way around it.
 
 **What tips the balance.** The alternative is not "test it somewhere better" — it is *not testing it*,
 because there is no HTTP surface to test it through. A cross-tenant storage bug is the single worst
