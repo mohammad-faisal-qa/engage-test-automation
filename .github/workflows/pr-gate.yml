@@ -79,6 +79,14 @@ jobs:
           # that pays for Chromium and the frontend build.
           ui: "true"
       - name: pytest -m "not smoke and not destructive" -n 4
+        env:
+          # The one job that selects `db` tests, so the one job that gets a
+          # database URL. It is the same throwaway service container the
+          # application is using — never Neon, whose free compute this suite has
+          # no business spending and whose branches hold data worth keeping.
+          # Elsewhere the variable stays unset and the db tests skip, which is
+          # also what happens on a fresh clone.
+          TEST_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: pytest -m "not smoke and not destructive" -n 4
       - name: Application log
         # Only on failure, and only because a failure here has twice now been a

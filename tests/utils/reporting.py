@@ -47,6 +47,7 @@ MODULE_AREAS: dict[str, str] = {
     "test_analytics_invariants": "Analytics",
     # Platform-wide
     "test_reset_guard": "Platform",
+    "test_storage_facts": "Platform",
     "test_seed_data": "Platform",
     "test_contract_openapi": "Platform",
     # Browser
@@ -116,6 +117,8 @@ MODULE_SEVERITY: dict[str, str] = {
     "test_contract_openapi": "normal",
     # The guard exists to prevent an irreversible loss of the live demo.
     "test_reset_guard": "blocker",
+    # Data filed under the wrong tenant, or retained after deletion.
+    "test_storage_facts": "critical",
     "test_onsite_frequency_cap": "normal",
     "test_survey_submission": "normal",
 }
@@ -162,6 +165,7 @@ TEST_DEFECTS: dict[str, tuple[str, ...]] = {
 # --- derivation ------------------------------------------------------------
 
 _LAYER_BY_MARKER = (
+    ("db", "Database"),
     ("unit", "Unit"),
     ("contract", "Contract"),
     ("e2e", "Journey"),

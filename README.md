@@ -12,8 +12,9 @@ API, contract, browser and BDD tests for **Engage**, a multi-tenant customer eng
 | **Application under test** | [engage-app](https://github.com/mohammad-faisal-qa/engage-app) |
 | **Live demo** | <https://engage-web-09fg.onrender.com> |
 
-**146 tests** — 75 functional API, 24 contract, 24 browser, 16 BDD journeys, 7 guard — running green
-at `-n 4` in about three and a half minutes.
+**151 tests** — 75 functional API, 24 contract, 24 browser, 16 BDD journeys, 7 guard, 5 database —
+running green at `-n 4` in about three and a half minutes. The five database tests skip cleanly when
+`TEST_DATABASE_URL` is unset, so a fresh clone is green without a database to point them at.
 
 The application is a separate repository on purpose, and nothing here imports a line of it. The
 suite reaches the app the way any other client would: over HTTP, against a running instance. That
@@ -49,7 +50,8 @@ make report                  # open the Allure report
 | `make smoke` | fast critical-path gate (3) |
 | `make api` | API suite, 4 workers (115) |
 | `make ui` | browser suite, 2 workers (24) |
-| `make all` | everything, 4 workers (146) |
+| `make db` | database assertions (5) — skips without `TEST_DATABASE_URL` |
+| `make all` | everything, 4 workers (151) |
 | `make report` | serve the Allure report |
 | `make clean` | wipe generated output |
 
@@ -69,9 +71,11 @@ tests/
 ├── models/             the tests' own Pydantic response models
 ├── data/               factories.py (unique data) · constants.py (pinned seed facts)
 ├── utils/              waits.py (polling) · auth_state.py (cross-worker browser session)
+│                       db.py (read-only SQL — the only path to a database)
 ├── api_tests/          functional and contract tests
 ├── pages/              page objects + components/ (nav, grid, rule builder, wizard, dialog)
 ├── ui_tests/           browser tests
+├── db_tests/           the few facts HTTP structurally cannot expose
 ├── features/           Gherkin — business journeys only
 └── steps/              step definitions
 ```
@@ -124,6 +128,23 @@ assert `clicked ≤ opened ≤ delivered ≤ sent` rather than any fixed number.
 defects a person would trip over — a button that stops being a `<button>`, an input that loses its
 label — so a suite built on testids alone reports green while the experience is broken. Testids earn
 their place for per-row identity, where roles cannot express "the Delete button in contact 41's row".
+
+### One read-only door to the database
+
+Five tests read Postgres directly, because three things this system can be wrong about have no HTTP
+representation at all — `deliveries` never returns a `tenant_id`, and `webhook_events` and
+`notification_impressions` have no endpoint. A row filed under the wrong tenant in any of them is
+invisible to every other test here.
+
+The door is deliberately narrow. Reads only, and enforced by the server rather than by convention:
+every transaction opens `BEGIN READ ONLY`, so a write is refused by Postgres. It takes its own
+`TEST_DATABASE_URL` rather than the application's, skips cleanly when that is unset, and in CI points
+at the throwaway service container. And because the real risk is not these five queries but the
+sixth one somebody adds in a hurry, every `db` test must state in its docstring why the API cannot
+show the failure it looks for — checked at collection time, and the run fails if it does not.
+
+[TEST_STRATEGY.md §9](docs/TEST_STRATEGY.md#9-the-database-assertion-layer) makes the case for the
+layer and the honest case against it: these tests know the schema, and the schema is not a contract.
 
 ### Failure evidence, only on failure
 
@@ -180,7 +201,9 @@ the readonly selection against a database we control leaves every row count iden
 ## Secrets
 
 `.env` is gitignored and holds `TEST_API_KEY`, which guards the reset endpoint on a publicly
-reachable demo. It must match the value the application was started with — in engage-app's `.env`
+reachable demo, and optionally `TEST_DATABASE_URL` for the database tests — deliberately a separate
+variable from the application's `DATABASE_URL`, so that pointing the suite at a database is its own
+decision. It must match the value the application was started with — in engage-app's `.env`
 locally, and in the Render dashboard for the deployed instance. A mismatch surfaces as
 `401 Missing or invalid X-Test-Key`, which reads like a broken test rather than a stale secret, so
 the suite's precondition says so in as many words.

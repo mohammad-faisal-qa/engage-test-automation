@@ -32,6 +32,9 @@ markers = [
   # Pure functions with no application involved — the guards that protect the
   # suite itself. They need no server, so they run anywhere.
   "unit: no application required",
+  # Read-only SELECTs against the database, for facts the HTTP API structurally
+  # cannot expose. Skips when TEST_DATABASE_URL is unset. See TEST_STRATEGY §9.
+  "db: asserts against the database directly",
   "slow: over 10 seconds",
 ]
 
