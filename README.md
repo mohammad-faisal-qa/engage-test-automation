@@ -12,8 +12,8 @@ API, contract, browser and BDD tests for **Engage**, a multi-tenant customer eng
 | **Application under test** | [engage-app](https://github.com/mohammad-faisal-qa/engage-app) |
 | **Live demo** | <https://engage-web-09fg.onrender.com> |
 
-**138 tests** — 74 functional API, 24 contract, 24 browser, 16 BDD journeys — running green at
-`-n 4` in about three and a half minutes.
+**146 tests** — 75 functional API, 24 contract, 24 browser, 16 BDD journeys, 7 guard — running green
+at `-n 4` in about three and a half minutes.
 
 The application is a separate repository on purpose, and nothing here imports a line of it. The
 suite reaches the app the way any other client would: over HTTP, against a running instance. That
@@ -47,9 +47,9 @@ make report                  # open the Allure report
 | Command | Runs |
 |---|---|
 | `make smoke` | fast critical-path gate (3) |
-| `make api` | API suite, 4 workers (114) |
+| `make api` | API suite, 4 workers (115) |
 | `make ui` | browser suite, 2 workers (24) |
-| `make all` | everything, 4 workers (138) |
+| `make all` | everything, 4 workers (146) |
 | `make report` | serve the Allure report |
 | `make clean` | wipe generated output |
 
@@ -187,3 +187,13 @@ the suite's precondition says so in as many words.
 
 Request and response bodies are attached to every Allure report, so `clients/base.py` redacts
 `Authorization`, `X-Test-Key` and `X-Webhook-Secret` before anything is written.
+
+`GET /api/health` reports `database_endpoint` — the endpoint **label** of the database the instance
+is connected to, e.g. `ep-round-snow-axyc70lw` — and does so unauthenticated, because the health
+check has to work before anyone has a token. That is a deliberate trade and it is a narrow one: the
+label identifies *which* database this is and cannot be used to reach it. There is no host, no
+region, no role and no credential, and a connection needs all of them. What it buys is the only
+signal that catches the accident in [DEF-005](docs/defects/DEF-005-unverified-database-endpoints.md)
+— a local application connected to the production database, which is invisible from the URL
+(`127.0.0.1`) and from the health status (`ok`). Without it the suite cannot tell the database it is
+about to wipe from the one it is meant to wipe.

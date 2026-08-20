@@ -72,6 +72,7 @@ report:
 report-static:
 	$(summarise_results)
 	allure generate $(RESULTS) --clean -o $(REPORT)
+	@$(PY) tests/utils/verify_report.py $(RESULTS) $(REPORT)
 
 clean:
 	rm -rf reports .pytest_cache

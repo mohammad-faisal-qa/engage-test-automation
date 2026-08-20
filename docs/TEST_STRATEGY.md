@@ -62,15 +62,16 @@ on the status code.
 
 ## 3. Test levels
 
-138 tests. The shape is deliberate and is not a pyramid — it is a consequence of where this
+146 tests. The shape is deliberate and is not a pyramid — it is a consequence of where this
 application's risk actually sits.
 
 | Level | Count | What it answers |
 |---|---|---|
-| Functional API | 74 | Does the application behave correctly? |
+| Functional API | 75 | Does the application behave correctly? |
 | Contract | 24 | Does it still promise what its clients depend on? |
 | Browser (UI) | 24 | Does the interface work, and fail, correctly? |
 | BDD journeys | 16 | Do the business outcomes hold end to end? |
+| Guard (unit) | 7 | Does the suite refuse to destroy what it is protecting? |
 
 **Why API-heavy.** The interesting behaviour in this product is server-side: rule evaluation, a
 state machine, idempotency, derived counts. Testing those through a browser would be slower, more
@@ -128,6 +129,12 @@ deployment. The same engine on both sides removes the class entirely.
 
 **A service container in CI, not Neon.** CI must not burn a free compute budget, and a gate that
 depends on an external tier being awake is a gate that fails for reasons unrelated to the change.
+
+**The suite refuses to reset a production-looking target.** `GET /api/health` reports the database
+endpoint label, and `database_state` will not reset when that label is production's or when the API
+under test is the deployed instance — `ALLOW_PRODUCTION_RESET=true` is the deliberate override. The
+label is exposed unauthenticated so the check works before a token exists; it names the database but
+carries no host, role or credential, so it cannot be used to reach it. See DEF-005.
 
 **The demo's database is separated from local development.** Local runs previously reset the same
 Neon branch the public demo served, so running the suite wiped the demo the portfolio links to. A
