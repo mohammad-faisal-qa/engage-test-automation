@@ -14,6 +14,13 @@ not.
 | [DEF-002](DEF-002-viewer-reaches-edit-route.md) | A viewer can open the segment editor by URL | Low | Low | Open |
 | [DEF-003](DEF-003-sticky-wait-always-succeeds.md) | A wait that always succeeded, in our own framework | High | High | Fixed |
 | [DEF-004](DEF-004-ci-only-connection-reset.md) | Connection reset in CI only, and a wrong first diagnosis | Medium | High | Cause found — same as DEF-001 |
+| [DEF-005](DEF-005-unverified-database-endpoints.md) | Local and live configured against endpoints never verified as distinct | High | High | Open — root cause partly UNKNOWN |
+
+**DEF-005 is the only one here whose root cause is recorded as UNKNOWN.** That is deliberate. Two
+plausible mechanisms were considered and neither could be confirmed against Neon's documentation,
+so the report says what is established, says what is not, and names the rejected hypotheses so
+nobody spends an afternoon re-running them. A root-cause section that invents a tidy explanation is
+worse than one that admits the gap, because the next person believes it.
 
 **DEF-001 and DEF-004 turned out to be one defect seen from two ends.** They are kept as separate
 reports because they were found separately, investigated separately, and cost differently — and

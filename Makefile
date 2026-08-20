@@ -56,11 +56,21 @@ regression:
 destructive:
 	$(PYTEST) -m destructive $(ARGS)
 
+# Both report targets say what they are about to include first. A report is a
+# snapshot of the results directory at the moment it is generated, and a run
+# that finishes afterwards is silently absent from it — which is how a whole
+# browser job once went missing from a report that looked complete.
+define summarise_results
+	@echo "Including $$(ls $(RESULTS)/*-result.json 2>/dev/null | wc -l | tr -d ' ') result file(s), newest written $$(ls -t $(RESULTS)/*-result.json 2>/dev/null | head -1 | xargs -I{} date -r {} '+%H:%M:%S' 2>/dev/null || echo 'never')."
+endef
+
 report:
+	$(summarise_results)
 	allure serve $(RESULTS)
 
 # Generates to disk instead of serving — what CI publishes.
 report-static:
+	$(summarise_results)
 	allure generate $(RESULTS) --clean -o $(REPORT)
 
 clean:
