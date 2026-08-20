@@ -20,7 +20,21 @@ is no `time.sleep` in this package.
 
 from __future__ import annotations
 
+import allure
 from playwright.sync_api import Locator, Page, expect
+
+
+def describe(target: str | Locator) -> str:
+    """A short name for a locator, for step titles.
+
+    A testid is already the clearest thing to print. A Locator prints its own
+    selector, which is long and full of internal syntax, so it is trimmed to the
+    part a reader recognises.
+    """
+    if isinstance(target, str):
+        return repr(target)
+    text = str(target)
+    return text.split("selector=")[-1].strip("'\">) ")[:70]
 
 
 class BasePage:
@@ -44,10 +58,12 @@ class BasePage:
         a test independent of the path taken — a broken filter control should
         fail the filter test, not every test that needed a filtered page.
         """
-        self.page.goto(f"{self.base_url}/#{route}", wait_until="domcontentloaded")
+        with allure.step(f"Open #{route}"):
+            self.page.goto(f"{self.base_url}/#{route}", wait_until="domcontentloaded")
 
     def back(self) -> None:
-        self.page.go_back()
+        with allure.step("Go back"):
+            self.page.go_back()
 
     # --- locating ----------------------------------------------------------
 
@@ -66,23 +82,29 @@ class BasePage:
 
     def expect_visible(self, target: str | Locator, *, timeout: float | None = None) -> Locator:
         locator = self._locator(target)
-        expect(locator).to_be_visible(timeout=self._ms(timeout))
+        with allure.step(f"Expect {describe(target)} to be visible"):
+            expect(locator).to_be_visible(timeout=self._ms(timeout))
         return locator
 
     def expect_hidden(self, target: str | Locator, *, timeout: float | None = None) -> None:
-        expect(self._locator(target)).to_be_hidden(timeout=self._ms(timeout))
+        with allure.step(f"Expect {describe(target)} to be hidden"):
+            expect(self._locator(target)).to_be_hidden(timeout=self._ms(timeout))
 
     def expect_count(self, target: str | Locator, count: int, *, timeout: float | None = None) -> None:
-        expect(self._locator(target)).to_have_count(count, timeout=self._ms(timeout))
+        with allure.step(f"Expect {describe(target)} to appear {count} time(s)"):
+            expect(self._locator(target)).to_have_count(count, timeout=self._ms(timeout))
 
     def expect_text(self, target: str | Locator, text, *, timeout: float | None = None) -> None:
-        expect(self._locator(target)).to_have_text(text, timeout=self._ms(timeout))
+        with allure.step(f"Expect {describe(target)} to read {text!r}"):
+            expect(self._locator(target)).to_have_text(text, timeout=self._ms(timeout))
 
     def expect_contains_text(self, target: str | Locator, text, *, timeout: float | None = None) -> None:
-        expect(self._locator(target)).to_contain_text(text, timeout=self._ms(timeout))
+        with allure.step(f"Expect {describe(target)} to contain {text!r}"):
+            expect(self._locator(target)).to_contain_text(text, timeout=self._ms(timeout))
 
     def expect_route(self, route: str, *, timeout: float | None = None) -> None:
-        self.page.wait_for_url(f"**/#{route}", timeout=self._ms(timeout))
+        with allure.step(f"Expect to be on #{route}"):
+            self.page.wait_for_url(f"**/#{route}", timeout=self._ms(timeout))
 
     def _locator(self, target: str | Locator) -> Locator:
         return self.testid(target) if isinstance(target, str) else target

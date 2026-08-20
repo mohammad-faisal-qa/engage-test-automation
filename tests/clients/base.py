@@ -182,6 +182,13 @@ class BaseClient:
                     method, path, attempt, attempts, exc,
                 )
 
+        with allure.step(f"{method} {path} → no response ({attempts} attempt(s))"):
+            allure.attach(
+                f"{type(last).__name__}: {last}",
+                name="transport failure",
+                attachment_type=allure.attachment_type.TEXT,
+            )
+
         raise TransportFailure(
             f"{method} {self.base_url}{path} failed at the transport level after "
             f"{attempts} attempt(s): {type(last).__name__}: {last}\n"
@@ -204,11 +211,21 @@ class BaseClient:
     # --- reporting ---------------------------------------------------------
 
     def _record(self, response: httpx.Response, request_body: Any) -> None:
-        """Log the exchange and attach both halves to the Allure report.
+        """Log the exchange and file it as one step in the Allure report.
 
         Every request is attached, not only failing ones: when a test fails on
         its third call, the first two are the context you need to understand
         why, and they no longer exist by the time you read the report.
+
+        The attachments go *inside* a step rather than on the test root. A test
+        that makes six calls used to render as twelve attachments in a flat
+        list, in which nothing said which request each belonged to; it now
+        renders as six named steps a reader can follow in order.
+
+        The step is opened after the call returns, because its name carries the
+        status and the status is not known before then. Its own duration is
+        therefore ~0, so the real elapsed time is written into the name — the
+        one place a reader will actually look for it.
         """
         request = response.request
         safe_headers = {
@@ -234,17 +251,22 @@ class BaseClient:
             response.elapsed.total_seconds() * 1000 if response.elapsed else 0.0,
         )
 
-        label = f"{request.method} {request.url.path}"
-        allure.attach(
-            _truncate("\n".join(request_lines)),
-            name=f"→ {label}",
-            attachment_type=allure.attachment_type.TEXT,
+        elapsed_ms = response.elapsed.total_seconds() * 1000 if response.elapsed else 0.0
+        step = (
+            f"{request.method} {request.url.path} "
+            f"→ {response.status_code} ({elapsed_ms:.0f} ms)"
         )
-        allure.attach(
-            _truncate(f"HTTP {response.status_code}\n\n{response_body}"),
-            name=f"← {label} [{response.status_code}]",
-            attachment_type=allure.attachment_type.TEXT,
-        )
+        with allure.step(step):
+            allure.attach(
+                _truncate("\n".join(request_lines)),
+                name="request",
+                attachment_type=allure.attachment_type.TEXT,
+            )
+            allure.attach(
+                _truncate(f"HTTP {response.status_code}\n\n{response_body}"),
+                name=f"response · {response.status_code}",
+                attachment_type=allure.attachment_type.TEXT,
+            )
 
     @staticmethod
     def _assert_status(response: httpx.Response, expect: int | Iterable[int]) -> None:

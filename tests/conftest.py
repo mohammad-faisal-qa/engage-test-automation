@@ -8,6 +8,7 @@ happen before any test in any worker touches a row.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import platform
@@ -21,6 +22,16 @@ from filelock import FileLock
 
 from clients import ApiClients
 from config.settings import REPO_ROOT, TestSettings, get_settings
+from utils.reporting import (
+    DEFECTS,
+    MODULE_FEATURES,
+    area_for,
+    defects_for,
+    layer_for,
+    sentence_for,
+    severity_for,
+    title_template,
+)
 
 logger = logging.getLogger("tests.setup")
 
@@ -269,25 +280,99 @@ def test_failed(item: pytest.Item) -> bool:
     )
 
 
+def _describe_for_the_report(item: pytest.Item) -> None:
+    """Give one test the labels that make the report navigable.
+
+    Applied centrally so all 138 tests gain structure without 138 decorators.
+    Anything the test already declares for itself wins — a module that says
+    `@allure.feature("Tenant isolation")` knows better than a lookup keyed on
+    its filename.
+
+    Labels are added as raw `allure_label` marks rather than through
+    `allure.epic(...)`, because those helpers are decorators and return a
+    function, not a mark. This is the same mechanism they use underneath.
+    """
+    module = item.module.__name__.rsplit(".", 1)[-1]
+    name = item.originalname or item.name
+    markers = {m.name for m in item.iter_markers()}
+    callspec = getattr(item, "callspec", None)
+    params = dict(callspec.params) if callspec else {}
+    declared = {
+        m.kwargs.get("label_type")
+        for m in item.iter_markers(name="allure_label")
+    }
+
+    # Product area. Nothing declares an epic today, so this is purely additive
+    # and is what the Behaviors tab groups by.
+    if "epic" not in declared:
+        item.add_marker(
+            pytest.mark.allure_label(
+                area_for(module, name, params), label_type="epic"
+            )
+        )
+
+    # Finer grouping: the module's own feature, or the layer it belongs to.
+    if "feature" not in declared:
+        feature = MODULE_FEATURES.get(module) or layer_for(markers)
+        item.add_marker(pytest.mark.allure_label(feature, label_type="feature"))
+
+    if "story" not in declared:
+        item.add_marker(
+            pytest.mark.allure_label(sentence_for(name), label_type="story")
+        )
+
+    if "severity" not in declared:
+        item.add_marker(
+            pytest.mark.allure_label(
+                severity_for(module, name), label_type="severity"
+            )
+        )
+
+    # The layer, as a tag, so Graphs and the filter bar can slice by it.
+    item.add_marker(pytest.mark.allure_label(layer_for(markers), label_type="tag"))
+
+    # A failure in a test with a known defect is one click from its report.
+    for defect in defects_for(module, name):
+        item.add_marker(
+            pytest.mark.allure_link(
+                DEFECTS[defect], name=f"{defect} — known defect", link_type="issue"
+            )
+        )
+
+    # Readable title. Set on the function because that is where allure-pytest
+    # reads it from; the placeholders are what keep parametrised runs distinct.
+    parameters = list(params)
+    if not getattr(item.function, "__allure_display_name__", None):
+        item.function.__allure_display_name__ = title_template(name, parameters)
+
+
 @pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    """Fail the run when the selection is empty.
+    """Describe every selected test for the report, then guard the selection.
 
-    `trylast` is load-bearing: `-m` deselection happens in pytest's own
-    implementation of this same hook, and without it this one runs first, sees
-    the full un-deselected list, and never fires — a guard that is itself
-    silently inactive, which is precisely the class of bug it exists to catch.
-
-    pytest exits 5 for "no tests ran", and plenty of CI configurations treat
-    anything non-zero as red — but plenty of others check only for failures, and
-    a job that deselects everything then reports a green tick having verified
-    nothing. That is the worst possible outcome: silence that looks like proof.
-
-    A marker typo is the usual cause, and `--strict-markers` cannot catch it,
-    because that guards markers applied to tests, not markers named in `-m`.
+    Both jobs belong in this hook: it runs after deselection, so it sees exactly
+    the tests that will run.
     """
+    for item in items:
+        _describe_for_the_report(item)
+
+    # The guard below fails the run when the selection is empty.
+    #
+    # `trylast` is load-bearing: `-m` deselection happens in pytest's own
+    # implementation of this same hook, and without it this one runs first, sees
+    # the full un-deselected list, and never fires — a guard that is itself
+    # silently inactive, which is precisely the class of bug it exists to catch.
+    #
+    # pytest exits 5 for "no tests ran", and plenty of CI configurations treat
+    # anything non-zero as red — but plenty of others check only for failures, and
+    # a job that deselects everything then reports a green tick having verified
+    # nothing. That is the worst possible outcome: silence that looks like proof.
+    #
+    # A marker typo is the usual cause, and `--strict-markers` cannot catch it,
+    # because that guards markers applied to tests, not markers named in `-m`.
+    #
     if items:
         return
 
@@ -349,6 +434,58 @@ def _app_commit_sha(settings: TestSettings) -> str:
     return completed.stdout.strip() or "unknown"
 
 
+# How this suite actually fails, in the order a reader should think about it.
+# Allure's default buckets are only "Product defects" and "Test defects", which
+# put a stale secret, a dropped connection and a genuine bug in the same pile.
+# Each entry below is a failure mode this suite has really produced.
+#
+# The regexes are full-match against the failure message, so each is wrapped in
+# `(?s).*...*` — `(?s)` because these messages are multi-line.
+ALLURE_CATEGORIES = [
+    {
+        # Checked before the generic buckets: this one has a known write-up.
+        "name": "Known defect — DEF-001 (delete a referenced contact)",
+        "matchedStatuses": ["failed", "broken"],
+        "messageRegex": r"(?s).*(deliveries_contact_id_fkey|has deliveries and cannot be removed).*",
+    },
+    {
+        "name": "Config drift — TEST_API_KEY mismatch",
+        "matchedStatuses": ["failed", "broken"],
+        "messageRegex": r"(?s).*(configurations have drifted|Missing or invalid X-Test-Key|TEST_API_KEY is not set).*",
+    },
+    {
+        "name": "Transport failure — connection reset",
+        "matchedStatuses": ["failed", "broken"],
+        "messageRegex": r"(?s).*(TransportFailure|Connection reset by peer|ReadError|failed at the transport level).*",
+    },
+    {
+        "name": "Application 5xx",
+        "matchedStatuses": ["failed", "broken"],
+        "messageRegex": r"(?s).*(actual status:\s+5\d\d|HTTP 5\d\d|Internal Server Error).*",
+    },
+    {
+        "name": "Timeout waiting for a condition",
+        "matchedStatuses": ["failed", "broken"],
+        "messageRegex": r"(?s).*(WaitTimeout|condition was never met|Timeout \d+ms exceeded|TimeoutError).*",
+    },
+    # Catch-alls, last, so nothing lands outside a bucket.
+    {"name": "Product defect", "matchedStatuses": ["failed"]},
+    {"name": "Test or environment error", "matchedStatuses": ["broken"]},
+]
+
+
+def _write_categories(target: Path) -> None:
+    """Publish the category definitions alongside the results.
+
+    Written from the suite rather than kept as a file in the repository so it
+    travels with every run — including a local `make report`, where nobody would
+    remember to copy it in.
+    """
+    (target / "categories.json").write_text(
+        json.dumps(ALLURE_CATEGORIES, indent=2), encoding="utf-8"
+    )
+
+
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     """Record what was tested, so a report six months old still means something.
 
@@ -365,6 +502,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     settings = get_settings()
     target = Path(results_dir)
     target.mkdir(parents=True, exist_ok=True)
+    _write_categories(target)
     (target / "environment.properties").write_text(
         "\n".join(
             [

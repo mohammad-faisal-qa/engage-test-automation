@@ -187,6 +187,26 @@ jobs:
             echo "No previous history — this will be the first report."
           fi
 
+      - name: Record which build produced this report
+        # Without this the report says nothing about where it came from, and a
+        # published report with no provenance is guesswork the moment there is
+        # more than one of them. Allure renders this as the "Executor" panel and
+        # links the run number straight back to the Actions log.
+        run: |
+          mkdir -p downloaded
+          cat > downloaded/executor.json <<JSON
+          {
+            "name": "GitHub Actions",
+            "type": "github",
+            "reportName": "Engage — PR gate",
+            "buildOrder": ${{ github.run_number }},
+            "buildName": "${{ github.workflow }} #${{ github.run_number }}",
+            "buildUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "reportUrl": "https://mohammad-faisal-qa.github.io/engage-test-automation/"
+          }
+          JSON
+          cat downloaded/executor.json
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
