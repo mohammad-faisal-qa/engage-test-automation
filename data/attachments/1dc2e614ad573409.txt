@@ -1,2 +1,0 @@
-10:43:57 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts?q=100%25 "HTTP/1.1 200 OK"
-10:43:57 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts?q=100%25 -> 200 (9 ms)

@@ -1,0 +1,8 @@
+11:02:34 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+11:02:34 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (5 ms)
+11:02:34 INFO  httpx | HTTP Request: DELETE http://127.0.0.1:8000/api/contacts/69 "HTTP/1.1 204 No Content"
+11:02:34 INFO  tests.http | DELETE http://127.0.0.1:8000/api/contacts/69 -> 204 (4 ms)
+11:02:34 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts/69 "HTTP/1.1 404 Not Found"
+11:02:34 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts/69 -> 404 (4 ms)
+11:02:34 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts?q=contact.864d77d9%40qa.example.com "HTTP/1.1 200 OK"
+11:02:34 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts?q=contact.864d77d9%40qa.example.com -> 200 (5 ms)

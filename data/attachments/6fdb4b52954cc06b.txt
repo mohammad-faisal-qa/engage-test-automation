@@ -1,0 +1,32 @@
+POST http://127.0.0.1:8000/api/segments
+
+{
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate",
+  "authorization": "<redacted>",
+  "connection": "keep-alive",
+  "content-length": "188",
+  "content-type": "application/json",
+  "host": "127.0.0.1:8000",
+  "user-agent": "python-httpx/0.28.1"
+}
+
+{
+  "kind": "rule",
+  "name": "Segment e0f85c5b",
+  "rules": {
+    "conditions": [
+      {
+        "field": "cohort",
+        "op": "eq",
+        "value": "cohort-000c2733"
+      },
+      {
+        "field": "plan",
+        "op": "eq",
+        "value": "nobody-a5b4c8da"
+      }
+    ],
+    "match": "all"
+  }
+}

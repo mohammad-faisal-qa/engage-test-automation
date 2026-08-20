@@ -1,0 +1,10 @@
+11:02:42 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/surveys "HTTP/1.1 201 Created"
+11:02:42 INFO  tests.http | POST http://127.0.0.1:8000/api/surveys -> 201 (5 ms)
+11:02:42 INFO  httpx | HTTP Request: PATCH http://127.0.0.1:8000/api/surveys/4 "HTTP/1.1 200 OK"
+11:02:42 INFO  tests.http | PATCH http://127.0.0.1:8000/api/surveys/4 -> 200 (8 ms)
+11:02:42 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+11:02:42 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (5 ms)
+11:02:42 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/surveys/4/responses "HTTP/1.1 422 Unprocessable Content"
+11:02:42 INFO  tests.http | POST http://127.0.0.1:8000/api/surveys/4/responses -> 422 (4 ms)
+11:02:42 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/surveys/4/summary "HTTP/1.1 200 OK"
+11:02:42 INFO  tests.http | GET http://127.0.0.1:8000/api/surveys/4/summary -> 200 (4 ms)

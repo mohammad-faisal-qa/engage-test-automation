@@ -1,8 +1,0 @@
-10:44:05 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
-10:44:05 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (6 ms)
-10:44:05 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
-10:44:05 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (9 ms)
-10:44:05 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/segments "HTTP/1.1 201 Created"
-10:44:05 INFO  tests.http | POST http://127.0.0.1:8000/api/segments -> 201 (7 ms)
-10:44:05 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/segments/33/members "HTTP/1.1 200 OK"
-10:44:05 INFO  tests.http | GET http://127.0.0.1:8000/api/segments/33/members -> 200 (7 ms)

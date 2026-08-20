@@ -1,0 +1,22 @@
+HTTP 200
+
+{
+  "created_at": "2026-08-20T11:02:42.084916Z",
+  "display": {
+    "delay_seconds": 0,
+    "position": "bottom_right"
+  },
+  "frequency_cap": {
+    "max_per_user": 5,
+    "period_hours": 24
+  },
+  "id": 8,
+  "name": "Notification baf7c1a0",
+  "segment_id": null,
+  "status": "paused",
+  "tenant_id": "acme",
+  "trigger": {
+    "event": "page_view",
+    "url_pattern": "/"
+  }
+}

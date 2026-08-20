@@ -1,0 +1,7 @@
+11:02:32 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+11:02:33 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/auth/login "HTTP/1.1 200 OK"
+11:02:33 INFO  tests.http | POST http://127.0.0.1:8000/api/auth/login -> 200 (256 ms)
+11:02:33 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 422 Unprocessable Content"
+11:02:33 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 422 (5 ms)
+11:02:33 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts?q=not-an-email "HTTP/1.1 200 OK"
+11:02:33 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts?q=not-an-email -> 200 (16 ms)

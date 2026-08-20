@@ -1,0 +1,8 @@
+11:02:42 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/notifications "HTTP/1.1 201 Created"
+11:02:42 INFO  tests.http | POST http://127.0.0.1:8000/api/notifications -> 201 (7 ms)
+11:02:42 INFO  httpx | HTTP Request: PATCH http://127.0.0.1:8000/api/notifications/9 "HTTP/1.1 200 OK"
+11:02:42 INFO  tests.http | PATCH http://127.0.0.1:8000/api/notifications/9 -> 200 (9 ms)
+11:02:42 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+11:02:42 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (8 ms)
+11:02:42 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/notifications/9/eligibility?contact_id=130 "HTTP/1.1 200 OK"
+11:02:42 INFO  tests.http | GET http://127.0.0.1:8000/api/notifications/9/eligibility?contact_id=130 -> 200 (9 ms)

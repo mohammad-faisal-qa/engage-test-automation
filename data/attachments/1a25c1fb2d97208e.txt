@@ -1,0 +1,4 @@
+11:02:42 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts/41 "HTTP/1.1 404 Not Found"
+11:02:42 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts/41 -> 404 (4 ms)
+11:02:42 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts/41 "HTTP/1.1 200 OK"
+11:02:42 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts/41 -> 200 (4 ms)

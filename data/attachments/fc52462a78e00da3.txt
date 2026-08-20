@@ -1,0 +1,4 @@
+11:01:23 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts?page=1&size=5 "HTTP/1.1 200 OK"
+11:01:23 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts?page=1&size=5 -> 200 (20 ms)
+11:01:23 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/contacts?page=2&size=5 "HTTP/1.1 200 OK"
+11:01:23 INFO  tests.http | GET http://127.0.0.1:8000/api/contacts?page=2&size=5 -> 200 (7 ms)
