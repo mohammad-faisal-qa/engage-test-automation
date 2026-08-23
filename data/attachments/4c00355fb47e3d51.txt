@@ -1,0 +1,26 @@
+POST http://127.0.0.1:8000/api/contacts
+
+{
+  "accept": "*/*",
+  "accept-encoding": "gzip, deflate",
+  "authorization": "<redacted>",
+  "connection": "keep-alive",
+  "content-length": "239",
+  "content-type": "application/json",
+  "host": "127.0.0.1:8000",
+  "user-agent": "python-httpx/0.28.1"
+}
+
+{
+  "attributes": {
+    "cohort": "cohort-cba23085",
+    "lifetime_value": 9000,
+    "newsletter": true,
+    "signup_source": "automation"
+  },
+  "country": "US",
+  "email": "contact.903efe25@qa.example.com",
+  "first_name": "Test",
+  "last_name": "Contact903efe25",
+  "plan": "enterprise"
+}
