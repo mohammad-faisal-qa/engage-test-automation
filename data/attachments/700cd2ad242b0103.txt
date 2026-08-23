@@ -1,8 +1,0 @@
-HTTP 202
-
-{
-  "campaign_id": 26,
-  "poll": "/api/campaigns/26/deliveries",
-  "queued": 2,
-  "status": "queued"
-}

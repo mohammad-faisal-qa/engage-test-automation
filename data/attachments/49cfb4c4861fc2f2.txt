@@ -1,0 +1,18 @@
+HTTP 201
+
+{
+  "attributes": {
+    "cohort": "cohort-5a0d03a4",
+    "lifetime_value": 2500,
+    "newsletter": true,
+    "signup_source": "automation"
+  },
+  "country": "US",
+  "created_at": "2026-08-23T07:10:00.076715Z",
+  "email": "contact.682e803f@qa.example.com",
+  "first_name": "Robert",
+  "id": 94,
+  "last_name": "Contact682e803f",
+  "plan": "pro",
+  "tenant_id": "acme"
+}

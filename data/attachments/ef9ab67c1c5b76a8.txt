@@ -1,0 +1,38 @@
+07:10:05 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+07:10:05 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (12 ms)
+07:10:05 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/contacts "HTTP/1.1 201 Created"
+07:10:05 INFO  tests.http | POST http://127.0.0.1:8000/api/contacts -> 201 (8 ms)
+07:10:05 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/segments "HTTP/1.1 201 Created"
+07:10:05 INFO  tests.http | POST http://127.0.0.1:8000/api/segments -> 201 (9 ms)
+07:10:05 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns "HTTP/1.1 201 Created"
+07:10:05 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns -> 201 (22 ms)
+07:10:05 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/campaigns/27/send "HTTP/1.1 202 Accepted"
+07:10:05 INFO  tests.http | POST http://127.0.0.1:8000/api/campaigns/27/send -> 202 (18 ms)
+07:10:05 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:05 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (9 ms)
+07:10:05 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:05 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (10 ms)
+07:10:05 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:05 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (10 ms)
+07:10:06 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:06 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (9 ms)
+07:10:06 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:06 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (12 ms)
+07:10:06 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:06 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (15 ms)
+07:10:07 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:07 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (12 ms)
+07:10:07 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:07 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (17 ms)
+07:10:07 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/campaigns/27/deliveries "HTTP/1.1 200 OK"
+07:10:07 INFO  tests.http | GET http://127.0.0.1:8000/api/campaigns/27/deliveries -> 200 (29 ms)
+07:10:07 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/webhooks/delivery "HTTP/1.1 200 OK"
+07:10:07 INFO  tests.http | POST http://127.0.0.1:8000/api/webhooks/delivery -> 200 (29 ms)
+07:10:07 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/webhooks/delivery "HTTP/1.1 200 OK"
+07:10:07 INFO  tests.http | POST http://127.0.0.1:8000/api/webhooks/delivery -> 200 (14 ms)
+07:10:07 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/webhooks/delivery "HTTP/1.1 200 OK"
+07:10:07 INFO  tests.http | POST http://127.0.0.1:8000/api/webhooks/delivery -> 200 (14 ms)
+07:10:07 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/analytics/campaigns/27 "HTTP/1.1 200 OK"
+07:10:07 INFO  tests.http | GET http://127.0.0.1:8000/api/analytics/campaigns/27 -> 200 (8 ms)
+07:10:07 INFO  httpx | HTTP Request: GET http://127.0.0.1:8000/api/analytics/campaigns/27 "HTTP/1.1 200 OK"
+07:10:07 INFO  tests.http | GET http://127.0.0.1:8000/api/analytics/campaigns/27 -> 200 (11 ms)
