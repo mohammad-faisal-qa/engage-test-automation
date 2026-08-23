@@ -156,6 +156,26 @@ jobs:
           path: reports/allure-results
           if-no-files-found: ignore
 
+  counts:
+    name: README counts
+    # No service container and nothing to boot: this is a pytest *collection*,
+    # so it needs neither the application nor a database. It exists because the
+    # README states how many tests there are, and a number written by hand is
+    # wrong within a week — see tests/utils/count_tests.py.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r tests/requirements-test.txt
+      - name: The README must agree with the tests it describes
+        env:
+          # Collection reads settings; nothing is called with them.
+          TEST_API_KEY: collection-only
+        run: python tests/utils/count_tests.py --check
+
   report:
     name: Publish Allure report
     needs: [smoke, regression, destructive]

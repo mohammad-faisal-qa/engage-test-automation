@@ -12,7 +12,7 @@ REPORT  := reports/allure-report
 # Extra pytest arguments: make smoke ARGS="-n 4"
 ARGS ?=
 
-.PHONY: install smoke api ui db all regression destructive report report-static clean help
+.PHONY: install smoke api ui db all regression destructive report report-static counts counts-check clean help
 
 help:
 	@echo "make install    create the venv and install test dependencies"
@@ -21,6 +21,7 @@ help:
 	@echo "make ui         browser suite, 2 workers"
 	@echo "make db         database assertions (needs TEST_DATABASE_URL, else skips)"
 	@echo "make all        everything, 4 workers"
+	@echo "make counts     regenerate the test counts in README.md"
 	@echo "make report     open the Allure report"
 	@echo "make clean      wipe reports"
 	@echo ""
@@ -80,6 +81,15 @@ report-static:
 	$(summarise_results)
 	allure generate $(RESULTS) --clean -o $(REPORT)
 	@$(PY) tests/utils/verify_report.py $(RESULTS) $(REPORT)
+
+# The README states how many tests there are; these keep that true. `counts`
+# rewrites the generated regions, `counts-check` fails when they are stale and
+# is what CI runs. Collection only — no application, no database, no network.
+counts:
+	$(PY) tests/utils/count_tests.py --write
+
+counts-check:
+	$(PY) tests/utils/count_tests.py --check
 
 clean:
 	rm -rf reports .pytest_cache
