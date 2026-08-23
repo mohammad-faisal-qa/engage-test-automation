@@ -1,2 +1,0 @@
-07:17:31 INFO  httpx | HTTP Request: POST http://127.0.0.1:8000/api/webhooks/delivery "HTTP/1.1 200 OK"
-07:17:31 INFO  tests.http | POST http://127.0.0.1:8000/api/webhooks/delivery -> 200 (9 ms)
