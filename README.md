@@ -4,185 +4,135 @@
 [![Deployed smoke](https://github.com/mohammad-faisal-qa/engage-test-automation/actions/workflows/deployed-smoke.yml/badge.svg)](https://github.com/mohammad-faisal-qa/engage-test-automation/actions/workflows/deployed-smoke.yml)
 [![Allure report](https://img.shields.io/badge/Allure_report-live-brightgreen)](https://mohammad-faisal-qa.github.io/engage-test-automation/)
 
-API, contract, browser and BDD tests for **Engage**, a multi-tenant customer engagement platform.
+A pytest framework — API, contract, browser and BDD — testing **Engage**, a multi-tenant customer
+engagement platform, the way any other client would: over HTTP and through a browser, against a
+running instance. The application is a separate repository and nothing here imports a line of it, so
+these tests agree with it because it behaves, not because they share its source.
 
 | | |
 |---|---|
 | **Live test report** | <https://mohammad-faisal-qa.github.io/engage-test-automation/> |
-| **Application under test** | [engage-app](https://github.com/mohammad-faisal-qa/engage-app) |
-| **Live demo** | <https://engage-web-09fg.onrender.com> |
-
-**151 tests** — 75 functional API, 24 contract, 24 browser, 16 BDD journeys, 7 guard, 5 database —
-running green at `-n 4` in about three and a half minutes. The five database tests skip cleanly when
-`TEST_DATABASE_URL` is unset, so a fresh clone is green without a database to point them at.
-
-The application is a separate repository on purpose, and nothing here imports a line of it. The
-suite reaches the app the way any other client would: over HTTP, against a running instance. That
-single constraint is what makes these tests meaningful — they agree with the application because it
-behaves, not because they share its source.
+| **Live application** | <https://engage-web-09fg.onrender.com> |
+| **Application under test** | [github.com/mohammad-faisal-qa/engage-app](https://github.com/mohammad-faisal-qa/engage-app) |
 
 ---
 
-## Quick start
+## Run it yourself
 
-The suite needs a running application. Start it from
-[engage-app](https://github.com/mohammad-faisal-qa/engage-app):
-
-```bash
-cd <engage-app>/api && .venv/bin/uvicorn app.main:app --reload
-cd <engage-app>/web && npm run dev          # only needed for the browser tests
-```
-
-Then here:
+The suite tests a running application, so start one first.
 
 ```bash
-cp .env.example .env         # set TEST_API_KEY to the value the app was started with
-make install                 # creates .venv, installs test dependencies
+# 1 · the application under test
+git clone https://github.com/mohammad-faisal-qa/engage-app.git
+cd engage-app
+cp .env.example .env                 # set DATABASE_URL (any Postgres) and TEST_API_KEY
+cd api && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/uvicorn app.main:app --reload
+
+# in a second shell — only needed for the browser tests
+cd engage-app/web && npm install && npm run dev
+
+# 2 · this repository
+git clone https://github.com/mohammad-faisal-qa/engage-test-automation.git
+cd engage-test-automation
+cp .env.example .env                 # TEST_API_KEY must match the value the app was started with
+make install                         # creates .venv, installs test dependencies
 .venv/bin/playwright install chromium
 
-make smoke                   # 3 tests, the critical-path gate
-make all                     # everything, 4 workers
-make report                  # open the Allure report
+make smoke                           # <!--n:smoke-->3<!--/n--> tests, the critical-path gate — seconds
+make all                             # everything, 4 workers
 ```
 
-| Command | Runs |
-|---|---|
-| `make smoke` | fast critical-path gate (3) |
-| `make api` | API suite, 4 workers (115) |
-| `make ui` | browser suite, 2 workers (24) |
-| `make db` | database assertions (5) — skips without `TEST_DATABASE_URL` |
-| `make all` | everything, 4 workers (151) |
-| `make report` | serve the Allure report |
-| `make clean` | wipe generated output |
+**Expected:** `make all` reports **<!--n:without_db-->146<!--/n--> passed, <!--n:db-->5<!--/n-->
+skipped** in just under four minutes. The skips are the database tests, which need
+`TEST_DATABASE_URL` and skip cleanly without it — a fresh clone is green with no database of its own.
+Set that variable and all <!--n:total-->151<!--/n--> run.
+
+Most of those four minutes is network latency: a laptop talks to a hosted Postgres, so every request
+pays a round trip. The same tests take about twenty seconds in CI, where the database is a container
+on the same machine.
 
 A virtualenv is not optional — Homebrew's Python is `EXTERNALLY-MANAGED` under PEP 668, so a bare
 `pip install` fails outright. `make install` handles it.
 
+| Command | Runs |
+|---|---|
+| `make smoke` | the critical-path gate |
+| `make api` | everything with the `api` marker, 4 workers |
+| `make ui` | the browser suite, 2 workers |
+| `make db` | the database assertions (skips without `TEST_DATABASE_URL`) |
+| `make all` | everything, 4 workers |
+| `make report` | serve the Allure report |
+| `make counts` | regenerate the numbers in this file |
+
 ---
 
-## How it is built
+## Architecture
 
 ```
 tests/
-├── conftest.py         session fixtures: settings, database state, clients, failure hooks
-├── config/settings.py  pydantic-settings — the one place the environment is read
-├── clients/            service objects over httpx; base.py handles auth, logging,
-│                       Allure attachment, retries and readable status failures
-├── models/             the tests' own Pydantic response models
-├── data/               factories.py (unique data) · constants.py (pinned seed facts)
-├── utils/              waits.py (polling) · auth_state.py (cross-worker browser session)
-│                       db.py (read-only SQL — the only path to a database)
-├── api_tests/          functional and contract tests
-├── pages/              page objects + components/ (nav, grid, rule builder, wizard, dialog)
-├── ui_tests/           browser tests
-├── db_tests/           the few facts HTTP structurally cannot expose
-├── features/           Gherkin — business journeys only
-└── steps/              step definitions
+├── clients/     Service Object Model — one object per API service, over httpx
+├── pages/       Page Object Model + components/ (nav, grid, rule builder, wizard, dialog)
+├── models/      the tests' own Pydantic response models
+├── data/        factories (unique-by-construction) · constants (pinned seed facts)
+├── utils/       waits · auth state · read-only SQL · safety guards · reporting
+├── api_tests/   functional and contract tests
+├── ui_tests/    browser tests
+├── db_tests/    the few facts HTTP structurally cannot expose
+├── features/    Gherkin — business journeys only
+└── steps/       step definitions
 ```
 
----
+**Service Object Model over httpx.** One object per service (`api.contacts()`, `api.campaigns()`),
+each method in two flavours — `create()` asserts and returns a model, `create_response()` returns the
+raw response for tests that are about a status code. A single registry fixture hands out any service
+as any of six identities (three roles × two tenants), because a fixture per identity would have been
+dozens of near-identical fixtures by the second phase. `clients/base.py` owns auth, logging, Allure
+attachment with header redaction, connection pooling, and retries for idempotent methods only.
 
-## Design decisions
+**Page Object Model for the browser layer**, with components for the parts that repeat — the data
+grid, the rule builder, the campaign wizard, the confirm dialog. Locators are user-facing first
+(`get_by_role`, `get_by_label`), `data-testid` second, CSS last: a suite built on testids alone stays
+green while a button quietly stops being a button. Failure evidence — screenshot, video, Playwright
+trace — attaches to Allure **only when a test fails**.
 
-The parts worth explaining, because each one is a trade-off rather than a default.
+**BDD sits at the API layer, not the browser.** The journeys assert business outcomes — a campaign
+reaches everyone in its segment, a capped notification stops being eligible — and those outcomes are
+observable over HTTP. Running them through Playwright would make them slower and more fragile without
+testing anything more, and would report a rendering fault when the rule engine was wrong. Gherkin
+covers the scenarios a non-technical stakeholder would actually read; everything else is plain
+pytest, because `assert status_code == 422` gains nothing from a translation layer.
 
-### Parallel-safe from the first commit
-
-Retrofitting parallel safety is far harder than building it in, so `-n 4` worked from Phase 1. Three
-rules: the database resets **once per session**, guarded across xdist workers by a file lock; every
-test creates uniquely-named data; and **no assertion depends on a global count**. `total == 40`
-passes alone and fails in parallel on a system behaving perfectly — the most expensive kind of
-failure, because it teaches people to re-run rather than read.
-
-Segments needed more than that. They evaluate over every contact in the tenant, so each test stamps
-a unique marker into `attributes.cohort` and every segment carries an `eq` condition on it —
-membership is then exactly that test's contacts, whatever else is in the database.
-
-### One registry fixture, not one fixture per identity
-
-Three roles across two tenants is six identities, and by Phase 2 that would have been dozens of
-near-identical fixtures. Instead `api.contacts(role="viewer")` reads as the identity under test, and
-adding a service costs one method.
-
-### The tests own their response models
-
-Restating each response shape here, rather than importing the application's schemas, is what makes a
-renamed field fail. Those models stay *tolerant of unknown fields* on purpose — adding a field is
-backwards compatible and a functional test has no business failing over it.
-
-Which is why contract tests exist separately: something still has to notice. They answer a different
-question — *does the published contract still declare what this suite consumes?* — and the list of
-what we consume lives here, in the consumer, so it can disagree with the provider. A list derived
-from the provider would agree with it by definition.
-
-### Assert on state, not on responses
-
-An endpoint that rejects a write **after** committing it returns the same 403 as one that rejects it
-properly. So the RBAC test checks the row is absent afterwards; the idempotency test captures
-`delivered_at`, replays the receipt and asserts the timestamp did not move; the analytics tests
-assert `clicked ≤ opened ≤ delivered ≤ sent` rather than any fixed number.
-
-### Locators: user-facing first
-
-`get_by_role` and `get_by_label` before `data-testid`, and CSS last. A testid lookup passes through
-defects a person would trip over — a button that stops being a `<button>`, an input that loses its
-label — so a suite built on testids alone reports green while the experience is broken. Testids earn
-their place for per-row identity, where roles cannot express "the Delete button in contact 41's row".
-
-### One read-only door to the database
-
-Five tests read Postgres directly, because three things this system can be wrong about have no HTTP
-representation at all — `deliveries` never returns a `tenant_id`, and `webhook_events` and
-`notification_impressions` have no endpoint. A row filed under the wrong tenant in any of them is
-invisible to every other test here.
-
-The door is deliberately narrow. Reads only, and enforced by the server rather than by convention:
-every transaction opens `BEGIN READ ONLY`, so a write is refused by Postgres. It takes its own
-`TEST_DATABASE_URL` rather than the application's, skips cleanly when that is unset, and in CI points
-at the throwaway service container. And because the real risk is not these five queries but the
-sixth one somebody adds in a hurry, every `db` test must state in its docstring why the API cannot
-show the failure it looks for — checked at collection time, and the run fails if it does not.
-
-[TEST_STRATEGY.md §9](docs/TEST_STRATEGY.md#9-the-database-assertion-layer) makes the case for the
-layer and the honest case against it: these tests know the schema, and the schema is not a contract.
-
-### Failure evidence, only on failure
-
-Screenshots, video and Playwright traces attach to Allure when a browser test fails and are
-discarded when it passes. An artefact attached to everything is an artefact nobody opens.
-
-### No sleeps, and no reruns
-
-Every wait polls a condition with a timeout. No rerun plugin is installed, which makes the cheap
-escape unavailable — the two intermittent failures we hit were fixed at the cause
-([DEF-003](docs/defects/DEF-003-sticky-wait-always-succeeds.md),
-[DEF-004](docs/defects/DEF-004-ci-only-connection-reset.md)) rather than absorbed.
+**Two repositories, deliberately.** The framework cannot import the application even by accident, so
+agreement between them is behavioural rather than structural — the tests restate every response shape
+they depend on, and a renamed field fails here instead of quietly passing. The cost is real and worth
+naming: CI checks out a second repository, and `TEST_API_KEY` lives in two places with nothing keeping
+them in step, which is why a mismatch has its own explicit precondition message.
 
 ---
 
-## Continuous integration
+## What is in the suite
 
-| Workflow | Trigger | What it does |
-|---|---|---|
-| [`pr-gate.yml`](.github/workflows/pr-gate.yml) | push · PR | Builds the app from source against a `postgres:16` service container, boots it, polls `/api/health`, runs smoke → regression → destructive, publishes Allure |
-| [`demo-reset.yml`](.github/workflows/demo-reset.yml) | 00:00 UTC | Restores the public demo to its seeded state; doubles as an uptime check |
-| [`deployed-smoke.yml`](.github/workflows/deployed-smoke.yml) | 00:30 UTC | Runs the read-only subset against the deployed demo |
+<!--table:groups-->
+| Group | Count | What it answers | Selected by | Where |
+|---|---:|---|---|---|
+| Functional API | 75 | Does the application behave correctly? | `-m api`, minus contract | `tests/api_tests/` |
+| Contract | 24 | Does it still promise what its clients depend on? | `-m contract` | `tests/api_tests/test_contract_openapi.py` |
+| Browser (UI) | 24 | Does the interface work, and fail, correctly? | `-m ui` | `tests/ui_tests/` |
+| BDD journeys | 16 | Do the business outcomes hold end to end? | `-m e2e` | `tests/features/` + `tests/steps/` |
+| Database | 5 | Is the stored data right where no response could show it? | `-m db` | `tests/db_tests/` |
+| Guard | 7 | Does the suite refuse to destroy what it protects? | `-m unit` | `tests/test_reset_guard.py` |
+| **Total** | **151** | | `make all` | |
+<!--/table-->
 
-**The application is never pinned.** CI checks out `engage-app@main`, because a pinned application
-would let this suite pass forever against a frozen target — the opposite of what a gate is for. The
-SHA it actually tested is written into `environment.properties`, so a red build six months from now
-still says which version it was red against.
+Every number above and in the quick-start is generated from a real pytest collection by
+[`tests/utils/count_tests.py`](tests/utils/count_tests.py), and CI fails when this file disagrees
+with the tests it describes. A hand-written count is wrong within a week, and a wrong number in the
+first paragraph is the one claim a reader can check in ten seconds.
 
-**The two scheduled jobs are ordered deliberately.** `deployed-smoke` asserts the demo's seeded rows
-are still what the suite expects, and the demo is public and writable — so the reset runs first at
-00:00 and the checks at 00:30. Without that gap, a stranger clicking around would turn the alert
-red, and an alert that cries wolf is one people stop reading.
-
-**`readonly` is its own marker, never `smoke`.** They promise different things: `smoke` means *fast
-and on the critical path*, `readonly` means *creates and mutates nothing*. Coupling them holds right
-up until someone adds a smoke test that creates a contact — at which point the scheduled job starts
-POSTing to the public demo with nothing to announce it. The claim is checked, not trusted: running
-the readonly selection against a database we control leaves every row count identical.
+The suite is API-heavy on purpose. The interesting behaviour in this product is server-side — rule
+evaluation, a state machine, idempotency, derived counts — and the interface gets tests for what only
+the interface can be wrong about.
 
 ---
 
@@ -190,33 +140,50 @@ the readonly selection against a database we control leaves every row count iden
 
 | | |
 |---|---|
-| [TEST_STRATEGY.md](docs/TEST_STRATEGY.md) | Scope, risk matrix, levels, entry/exit, environments, and what we deliberately don't automate |
-| [TEST_PLAN_campaigns.md](docs/TEST_PLAN_campaigns.md) | Feature-level plan for the campaign module |
-| [METRICS.md](docs/METRICS.md) | What to track, and how each metric gets gamed |
-| [docs/defects/](docs/defects/) | Real findings, with severity and priority set separately |
-| [FRAMEWORK_BUILD.md](FRAMEWORK_BUILD.md) | The phase-by-phase build guide this repository was built from |
+| [Test strategy](docs/TEST_STRATEGY.md) | Scope, a risk matrix, test levels, entry/exit criteria, environments and test-data rules |
+| [Test plan — campaigns](docs/TEST_PLAN_campaigns.md) | Feature-level plan for one module, with its named gaps |
+| [Defect reports](docs/defects/) | Five real findings, severity and priority set separately |
+| [Metrics](docs/METRICS.md) | Five metrics, each with **how it gets gamed** |
+| Decision records | The trade-offs, in the strategy: [tooling](docs/TEST_STRATEGY.md#7-tooling-rationale) · [what we don't automate](docs/TEST_STRATEGY.md#8-what-we-deliberately-do-not-automate) · [the database layer, argued both ways](docs/TEST_STRATEGY.md#9-the-database-assertion-layer) |
+| [Build guide](FRAMEWORK_BUILD.md) | The phase-by-phase guide this repository was built from, amended where it diverged |
+
+One of the five is a defect in this framework rather than the application — a wait that always
+succeeded, so the suite could assert against the wrong page and pass. Another records a CI failure
+whose first diagnosis was wrong and was shipped before being disproved. Both are written up as found,
+because a defect log that only contains other people's mistakes is not a defect log.
+
+---
+
+## What this deliberately does not cover
+
+Stated as decisions, because a coverage claim without its complement is half an answer. The full list
+and the reasoning is in [§8 of the strategy](docs/TEST_STRATEGY.md#8-what-we-deliberately-do-not-automate).
+
+- **Load, stress and soak.** The demo runs on a free tier that sleeps; any number produced would
+  measure the host's cold start rather than the application.
+- **Cross-browser.** Chromium only. Every extra browser multiplies run time and maintenance, and
+  adding one should be a decision rather than a default.
+- **Visual appearance.** No screenshot diffing — its failures are dominated by font rendering
+  differences between a laptop and a CI runner. The *data* behind a chart is asserted instead, so a
+  wrong number fails while a restyle does not.
+- **The campaign wizard and rule builder through the browser.** Their page objects exist and nothing
+  drives them. The risk each carries — a state machine, a rule evaluator — is covered directly at the
+  API level. What that leaves genuinely untested is whether the form submits what the user selected.
+- **Exhaustive field validation.** Boundaries are tested where a boundary means something;
+  enumerating every string length would add hundreds of tests that all fail together on a library
+  upgrade.
+- **Retries as a way to pass.** No rerun plugin is installed, so the cheap escape is unavailable. The
+  two intermittent failures found so far were fixed at the cause.
 
 ---
 
 ## Secrets
 
-`.env` is gitignored and holds `TEST_API_KEY`, which guards the reset endpoint on a publicly
-reachable demo, and optionally `TEST_DATABASE_URL` for the database tests — deliberately a separate
-variable from the application's `DATABASE_URL`, so that pointing the suite at a database is its own
-decision. It must match the value the application was started with — in engage-app's `.env`
-locally, and in the Render dashboard for the deployed instance. A mismatch surfaces as
-`401 Missing or invalid X-Test-Key`, which reads like a broken test rather than a stale secret, so
-the suite's precondition says so in as many words.
+`.env` is gitignored. `TEST_API_KEY` guards the reset endpoint on a publicly reachable demo and must
+match the value the application was started with; a mismatch surfaces as `401`, which reads like a
+broken test rather than stale configuration, so the suite's precondition says so in as many words.
+`TEST_DATABASE_URL` is deliberately a separate variable from the application's `DATABASE_URL` — the
+database tests read only, and pointing them at a database is its own decision.
 
 Request and response bodies are attached to every Allure report, so `clients/base.py` redacts
 `Authorization`, `X-Test-Key` and `X-Webhook-Secret` before anything is written.
-
-`GET /api/health` reports `database_endpoint` — the endpoint **label** of the database the instance
-is connected to, e.g. `ep-round-snow-axyc70lw` — and does so unauthenticated, because the health
-check has to work before anyone has a token. That is a deliberate trade and it is a narrow one: the
-label identifies *which* database this is and cannot be used to reach it. There is no host, no
-region, no role and no credential, and a connection needs all of them. What it buys is the only
-signal that catches the accident in [DEF-005](docs/defects/DEF-005-unverified-database-endpoints.md)
-— a local application connected to the production database, which is invisible from the URL
-(`127.0.0.1`) and from the health status (`ok`). Without it the suite cannot tell the database it is
-about to wipe from the one it is meant to wipe.
